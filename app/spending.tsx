@@ -2,34 +2,15 @@ import { StatusBar, Text, StyleSheet, Image, Platform, ImageBackground, View, Sa
 import { scale } from 'react-native-size-matters';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { useState } from 'react';
+import UserSession from "./UserSession";
+import DatabaseService from './DatabaseService'
 
 export default function Spending() {
 
   var budget = 700
-	var categoryData = [
-    { name: 'Wife', value: 156, color: '#F97A42' }, // Orange (Wife)
-    { name: 'Shopping', value: 89.1, color: '#04BF62' }, // Green (Shopping) 89.1
-    { name: 'Entertainment', value: 156, color: '#EC4EA4' }, // Red (Entertainment) 41.4
-    { name: 'Transport', value: 49.2, color: '#6061D6' }, // Blue (Transport) 49.2
-    { name: 'Rent', value: 230.0, color: '#06D3E2' }, // Teal (Rent) 230
-    { name: 'Skincare', value: 0, color: '#B1E733' }, // Yellow (Skincare) 0
-    { name: 'Meal', value: 10, color: '#E3346E' }, // Rose (Meal) 3
-    { name: 'Wife', value: 156, color: '#F97A42' }, // Orange (Wife)
-    { name: 'Shopping', value: 89.1, color: '#04BF62' }, // Green (Shopping) 89.1
-    { name: 'Entertainment', value: 156, color: '#EC4EA4' }, // Red (Entertainment) 41.4
-    { name: 'Transport', value: 49.2, color: '#6061D6' }, // Blue (Transport) 49.2
-    { name: 'Rent', value: 230.0, color: '#06D3E2' }, // Teal (Rent) 230
-    { name: 'Skincare', value: 0, color: '#B1E733' }, // Yellow (Skincare) 0
-    { name: 'Meal', value: 4, color: '#E3346E' }, // Rose (Meal) 3
-    { name: 'Wife', value: 156, color: '#F97A42' }, // Orange (Wife)
-    { name: 'Shopping', value: 89.1, color: '#04BF62' }, // Green (Shopping) 89.1
-    { name: 'Entertainment', value: 156, color: '#EC4EA4' }, // Red (Entertainment) 41.4
-    { name: 'Transport', value: 49.2, color: '#6061D6' }, // Blue (Transport) 49.2
-    // { name: 'Rent', value: 230.0, color: '#06D3E2' }, // Teal (Rent) 230
-    // { name: 'Skincare', value: 0, color: '#B1E733' }, // Yellow (Skincare) 0
-  ]
+	var categoryData = DatabaseService().getCategoryData()
   categoryData.sort((a, b) => b.value - a.value)
-  var nullWidth = 1.75
+  
   var [spent, setSpent] = useState(0)
   function displayPercentage(value: number) {
     var sum = 0
@@ -51,9 +32,8 @@ export default function Spending() {
     return value.toFixed(2).toString().substr(value.toFixed(2).toString().indexOf('.'), 3)
   }
 
-  // initialise var nullWidth = 1; can be changed anytime
-  
-  // initialise var validCount = number of nonnull categories (implemented using a function)
+  // Credit to Biondi Lee for improving my Colorful Divider Circle snazz
+  var nullWidth = 1.75
   function countValid() {
     var count = 0
     for (var category of categoryData) {
@@ -64,15 +44,9 @@ export default function Spending() {
     return count
   }
   var validCount = countValid()
-// null
-  // for each value, convert it into a percentage that is over (100 + nullWidth*validCount) and use it as `fill`
-  // for each rotate, rem + nullWidth; update rem by adding (fill + nullWidth)
-
   var rem = 90
-  function idk(percentage: number, category: any) {
-    console.log(category, 'rmmmmmmm', rem)
+  function idk(category: any) {
     var temp = rem
-    // rem = rem + (((displayPercentage(category.value)/100)*(100 - nullWidth*validCount) + nullWidth) / 100 * 360)
     if (displayPercentage(category.value) >= 1) {
       rem = rem + (((category.value/spent)*(100 - nullWidth*validCount) + nullWidth) / 100 * 360)
     }
@@ -104,37 +78,17 @@ export default function Spending() {
         {/* Not gonna lie, the color circle shets are still fucked up */}
         <View style={{position: 'absolute', alignSelf: 'center', marginTop: scale(105), height: scale(265), width: scale(265)}}>
           {categoryData.map((category, index) => {
-            var rotate = idk(100, category)
+            var rotate = idk(category)
             var fill = (category.value/spent)*(100 - nullWidth*validCount)
             if (displayPercentage(category.value) < 1) {
               fill = 0
             }
-            console.log('rotat', rotate)
-            console.log('fill', fill)
             return (
               <View key={index} style={{position: 'absolute', transform: [{rotate: rotate + 'deg'}, {scaleX: -1}, {scaleY: -1}]}}>
                 <AnimatedCircularProgress size={scale(265)} width={scale(8)} fill={fill} tintColor={category.color} lineCap={'round'}/>
               </View>
             )
           })}
-          {/* <View style={{position: 'absolute', transform: [{rotate: 90+'deg'}, {scaleX: -1}, {scaleY: -1}]}}>
-            <AnimatedCircularProgress size={scale(265)} width={scale(10)} fill={40/114*100} tintColor='#06D3E2' lineCap={'round'}/>
-          </View>
-          <View style={{position: 'absolute', transform: [{rotate: 224.58+'deg'}, {scaleX: -1}, {scaleY: -1}]}}>
-            <AnimatedCircularProgress size={scale(265)} width={scale(10)} fill={27/114*100} tintColor="#F97A42" lineCap={'round'}/>
-          </View>
-          <View style={{position: 'absolute', transform: [{rotate: 315.42+4+'deg'}, {scaleX: -1}, {scaleY: -1}]}}>
-            <AnimatedCircularProgress size={scale(265)} width={scale(10)} fill={16/114*100} tintColor="#04BF62" lineCap={'round'}/>
-          </View>
-          <View style={{position: 'absolute', transform: [{rotate: 369.25+8+'deg'}, {scaleX: -1}, {scaleY: -1}]}}>
-            <AnimatedCircularProgress size={scale(265)} width={scale(10)} fill={9/114*100} tintColor="#6061D6" lineCap={'round'}/>
-          </View>
-          <View style={{position: 'absolute', transform: [{rotate: 399.53+12+'deg'}, {scaleX: -1}, {scaleY: -1}]}}>
-            <AnimatedCircularProgress size={scale(265)} width={scale(10)} fill={7/114*100} tintColor="#EC4EA4" lineCap={'round'}/>
-          </View>
-          <View style={{position: 'absolute', transform: [{rotate: 423.08+16+'deg'}, {scaleX: -1}, {scaleY: -1}]}}>
-            <AnimatedCircularProgress size={scale(265)} width={scale(10)} fill={1/114*100} tintColor="#E3346E" lineCap={'round'}/>
-          </View> */}
         </View>
 			</View>
 

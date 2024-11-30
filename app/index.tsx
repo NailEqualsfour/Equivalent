@@ -1,6 +1,7 @@
 import { StatusBar, Text, StyleSheet, Image, ImageBackground, View, TouchableOpacity, Modal, PanResponder, Animated } from 'react-native';
 import { scale } from 'react-native-size-matters';
 import React, { useState, useRef, useEffect } from "react";
+import UserSession from "./UserSession";
 
 export default function Index() {
   

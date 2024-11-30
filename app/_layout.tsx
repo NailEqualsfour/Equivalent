@@ -8,6 +8,7 @@ import Swiper from 'react-native-swiper'
 import { StatusBar } from 'expo-status-bar';
 import { View, Text, Image, TouchableOpacity, StatusBar as statusbar, Platform } from "react-native";
 import { scale } from 'react-native-size-matters';
+import UserSession from "./UserSession";
 import Index from "./index";
 import Spending from "./spending";
 import Setup from "./setup";
@@ -27,6 +28,7 @@ export default function Layout() {
       deviceId = await Application.getAndroidId();
       console.log('device ID :', deviceId) // Mine: 6d40f748dd1d8bbe   Caro: 12138508123cda2f
     }
+    UserSession().setUserId(deviceId)
 
     await Font.loadAsync({
       Poppins_Light: require('../assets/fonts/Poppins-Light.ttf'),
