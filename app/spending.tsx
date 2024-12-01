@@ -1,4 +1,4 @@
-import { StatusBar, Text, StyleSheet, Image, Platform, ImageBackground, View, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
+import { StatusBar, Text, StyleSheet, Image, Platform, ImageBackground, View, SafeAreaView, ScrollView, Modal, TouchableOpacity } from 'react-native';
 import { scale } from 'react-native-size-matters';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { useState } from 'react';
@@ -9,8 +9,15 @@ export default function Spending() {
   var userId = UserSession().getUserId()
   var database = DatabaseService()
 
-  var budget = 700
-  var categoryData = database.getTransactionGroupbyCategory(userId!)
+  var [budget, setBudget] = useState(database.getBudgetByPeriod(userId!, 'This month'))
+  function updateBudget(period: string) {
+    setBudget(database.getBudgetByPeriod(userId!, period))
+  }
+  
+  var [categoryData, setCategoryData] = useState(database.getTransactionGroupbyCategoryByPeriod(userId!, 'This month'))
+  function updateCategoryData(period: string) {
+    setCategoryData(database.getTransactionGroupbyCategoryByPeriod(userId!, period))
+  }
   categoryData.sort((a, b) => b.cost - a.cost)
   
   var [spent, setSpent] = useState(0)
@@ -45,7 +52,7 @@ export default function Spending() {
     return count
   }
   var validCount = countValid()
-  var nullWidth = validCount == 0 ? 1.75 : validCount <= 6 ? 2 : 1.75
+  var nullWidth = validCount <= 1 ? 0 : validCount <= 6 ? 2 : 1.75
   var degree = 90
   function accumulatedRotation(category: any) {
     var usedDegree = degree
@@ -54,6 +61,21 @@ export default function Spending() {
     }
     return usedDegree
   }
+
+  var [dropdownVisible , setVisibility] = useState(false)
+  function toggleVisibility() {
+    setVisibility(!dropdownVisible)
+    
+  }
+  var [activePeriod, setPeriod] = useState('This month')
+  function selectPeriod(period: string) {
+    setPeriod(period)
+    updateBudget(period)
+    updateCategoryData(period)
+    toggleVisibility()
+  }
+  var periodOptions = ['This month', 'Last month', 'This year', 'Last year', 'Lifetime']
+
   return (
     <View style={{backgroundColor: '#E4E4E4', flex: 1}}>
 			<View>
@@ -66,10 +88,37 @@ export default function Spending() {
 					<Text style={{fontFamily: 'Poppins_Medium', fontSize: scale(15)}}>{displayCent(spent)}</Text>
 				</Text>
 
-        <View style={{position: 'absolute', alignSelf: 'center', justifyContent: 'center', marginTop: scale(265), height: scale(25), width: scale(100), borderRadius: scale(8), backgroundColor: 'white'}}>
-          <Text style={{textAlign: 'center', marginRight: scale(17), fontFamily: 'Poppins_Light', fontSize: scale(12)}}>This month</Text>
+        <TouchableOpacity onPress={toggleVisibility} style={{position: 'absolute', alignSelf: 'center', justifyContent: 'center', marginTop: scale(265), height: scale(25), width: scale(100), borderRadius: scale(8), backgroundColor: 'white', zIndex: 1}}>
+          <Text style={{textAlign: 'center', marginRight: scale(17), fontFamily: 'Poppins_Light', fontSize: scale(12)}}>{activePeriod}</Text>
           <Image source={require('../assets/images/arrow_down.png')} style={{position: 'absolute', right: scale(5), height: scale(13), width: scale(17), resizeMode: 'stretch'}}></Image>
+        </TouchableOpacity>
+        
+        <View>
+          <Modal visible={dropdownVisible} transparent={true} statusBarTranslucent>
+            <TouchableOpacity onPress={toggleVisibility} activeOpacity={1} style={{flex: 1, opacity: 0.6, backgroundColor: 'black', alignItems: 'center', justifyContent: 'center'}}></TouchableOpacity>
+            <View style={{position: 'absolute', alignSelf: 'center', justifyContent: 'center', marginTop: scale(265), height: scale(25), width: scale(100), borderRadius: scale(8), backgroundColor: 'white', zIndex: 1}}>
+              <Text style={{textAlign: 'center', marginRight: scale(17), fontFamily: 'Poppins_Light', fontSize: scale(12)}}>{activePeriod}</Text>
+              <Image source={require('../assets/images/arrow_down.png')} style={{position: 'absolute', right: scale(5), height: scale(13), width: scale(17), resizeMode: 'stretch'}}></Image>
+            </View>
+            <View style={{position: 'absolute', alignSelf: 'center', justifyContent: 'center', marginTop: scale(265), paddingTop: scale(25), height: scale(30*(periodOptions.length - 1)), width: scale(100), borderRadius: scale(8), backgroundColor: 'white'}}>
+              {periodOptions.map((period, index) => {
+                if (period == activePeriod) {
+                  return null
+                }
+                return (
+                  <View key={index}>
+                    <View style={{justifyContent: 'center', height: scale(1), width: scale(100), borderRadius: scale(1), backgroundColor: 'black', zIndex: 2}}></View>
+                    <TouchableOpacity onPress={() => selectPeriod(period)} style={{margin: scale(2)}}>
+                      <Text style={{textAlign: 'center', fontFamily: 'Poppins_Light', fontSize: scale(12)}}>{period}</Text>
+                    </TouchableOpacity>
+                  </View>
+                )
+              })}
+              
+            </View>
+          </Modal>
         </View>
+        
 
 				<View style={{position: 'absolute', alignSelf: 'center', marginTop: scale(130), height: scale(215), width: scale(215), transform: [{rotate: '90deg'}, {scaleX: -1}]}}>
 					<AnimatedCircularProgress size={scale(215)} width={scale(20)} fill={(1 - spent / budget) * 100} tintColor="#3D5875" backgroundColor="#E4E4E4" />
