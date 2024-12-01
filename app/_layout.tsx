@@ -26,8 +26,8 @@ export default function Layout() {
     } 
     if (Platform.OS === 'android') {
       deviceId = await Application.getAndroidId();
-      console.log('device ID :', deviceId) // Mine: 6d40f748dd1d8bbe   Caro: 12138508123cda2f
     }
+    console.log('device ID :', deviceId) // Mine: 6d40f748dd1d8bbe   Caro: 12138508123cda2f
     UserSession().setUserId(deviceId)
 
     await Font.loadAsync({
@@ -47,16 +47,25 @@ export default function Layout() {
     setPage(index)
   }
 
+  var [fadeOpacity, setFadeOpacity] = useState('rgb(255, 255, 255)')
+  function fading(x: number) {
+    setFadeOpacity('rgb(' + (255-x/440.67*255).toString() + ',' + (255-x/440.67*255).toString() + ','  + (255-x/440.67*255).toString() + ')')
+  }
+  function getFadeValue() {
+    return Number(fadeOpacity.substr(4, 3))
+  }
+
   if (appIsReady) {
     return (
       <>
-        <StatusBar style="light" translucent={true} backgroundColor="transparent" />
+        <StatusBar style={getFadeValue() < 127.5 ? 'dark' : 'light'} translucent={true} backgroundColor="transparent"/>
         <Swiper
           horizontal={true}
           loop={false}
           showsPagination={false}
           index={0} 
-          onIndexChanged={(index) => screenChange(index)}>
+          onIndexChanged={(index) => screenChange(index)}
+          onScroll={(e) => fading(scale(e.nativeEvent.contentOffset.x))}>
           <View style={{flex: 1}}>
             <Index/>
           </View>
@@ -69,12 +78,12 @@ export default function Layout() {
         </Swiper> 
 
         <View style={{position: 'absolute', marginTop: statusbar.currentHeight, alignSelf: 'center'}}>
-            <Text style={{fontFamily: 'Poppins_Light', color: page == 0 ? 'white' : 'black', fontSize: scale(25), letterSpacing: scale(1)}}>Equivalent</Text>
+            <Text style={{fontFamily: 'Poppins_Light', color: fadeOpacity, fontSize: scale(25), letterSpacing: scale(1)}}>Equivalent</Text>
         </View>
 
         <View style={{position: 'absolute', marginTop: statusbar.currentHeight, alignSelf: 'flex-end'}}>
           <TouchableOpacity style={{right: scale(17), top: scale(6)}}>
-            <Image source={require('../assets/images/more.png')} style={{tintColor: page == 0 ? 'white' : 'black', height: scale(25), width: scale(25)}}></Image>
+            <Image source={require('../assets/images/more.png')} style={{tintColor: fadeOpacity, height: scale(25), width: scale(25)}}></Image>
           </TouchableOpacity>
         </View>
 
