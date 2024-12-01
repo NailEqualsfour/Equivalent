@@ -6,16 +6,18 @@ import UserSession from "./UserSession";
 import DatabaseService from './DatabaseService'
 
 export default function Spending() {
+  var userId = UserSession().getUserId()
+  var database = DatabaseService()
 
   var budget = 700
-	var categoryData = DatabaseService().getCategoryData()
-  categoryData.sort((a, b) => b.value - a.value)
+  var categoryData = database.getTransactionGroupbyCategory(userId!)
+  categoryData.sort((a, b) => b.cost - a.cost)
   
   var [spent, setSpent] = useState(0)
   function displayPercentage(value: number) {
     var sum = 0
     for (var data of categoryData) {
-      sum = sum + data.value
+      sum = sum + data.cost
     }
     if (spent != sum) {
       setSpent(sum)
@@ -33,25 +35,24 @@ export default function Spending() {
   }
 
   // Credit to Biondi Lee for improving my Colorful Divider Circle snazz
-  var nullWidth = 1.75
   function countValid() {
     var count = 0
     for (var category of categoryData) {
-      if (displayPercentage(category.value) != 0) {
+      if (displayPercentage(category.cost) != 0) {
         count = count + 1
       }
     }
     return count
   }
   var validCount = countValid()
-  var rem = 90
-  function idk(category: any) {
-    var temp = rem
-    if (displayPercentage(category.value) >= 1) {
-      rem = rem + (((category.value/spent)*(100 - nullWidth*validCount) + nullWidth) / 100 * 360)
+  var nullWidth = validCount == 0 ? 1.75 : validCount <= 6 ? 2 : 1.75
+  var degree = 90
+  function accumulatedRotation(category: any) {
+    var usedDegree = degree
+    if (displayPercentage(category.cost) >= 1) {
+      degree = degree + (((category.cost/spent)*(100 - nullWidth*validCount) + nullWidth) / 100 * 360)
     }
-    
-    return temp
+    return usedDegree
   }
   return (
     <View style={{backgroundColor: '#E4E4E4', flex: 1}}>
@@ -78,14 +79,14 @@ export default function Spending() {
         {/* Not gonna lie, the color circle shets are still fucked up */}
         <View style={{position: 'absolute', alignSelf: 'center', marginTop: scale(105), height: scale(265), width: scale(265)}}>
           {categoryData.map((category, index) => {
-            var rotate = idk(category)
-            var fill = (category.value/spent)*(100 - nullWidth*validCount)
-            if (displayPercentage(category.value) < 1) {
+            var rotate = accumulatedRotation(category)
+            var fill = (category.cost/spent)*(100 - nullWidth*validCount)
+            if (displayPercentage(category.cost) < 1) {
               fill = 0
             }
             return (
               <View key={index} style={{position: 'absolute', transform: [{rotate: rotate + 'deg'}, {scaleX: -1}, {scaleY: -1}]}}>
-                <AnimatedCircularProgress size={scale(265)} width={scale(8)} fill={fill} tintColor={category.color} lineCap={'round'}/>
+                <AnimatedCircularProgress size={scale(265)} width={scale(8)} fill={fill} tintColor={database.getCategoryColor(userId!, category.name)} lineCap={'round'}/>
               </View>
             )
           })}
@@ -99,11 +100,11 @@ export default function Spending() {
             <View key={index}>
               <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
                 <Text style={{fontFamily: 'Poppins_Regular', fontSize: scale(17)}}>{category.name}</Text>
-                <Text style={{fontFamily: 'Poppins_Regular', fontSize: scale(17)}}>{category.value == 0 ? '- ' : '-S$'+displayDollar(category.value)+displayCent(category.value)}</Text>
+                <Text style={{fontFamily: 'Poppins_Regular', fontSize: scale(17)}}>{category.cost == 0 ? '- ' : '-S$'+displayDollar(category.cost)+displayCent(category.cost)}</Text>
               </View>
               <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: scale(1)}}>
-                <View style={{height: scale(10), width: scale((displayPercentage(category.value) / displayPercentage(categoryData[0].value) * 230) <= 10 ? 10 : displayPercentage(category.value) / displayPercentage(categoryData[0].value) * 230), borderRadius: scale(5), backgroundColor: category.color, marginTop: scale(-10)}}></View>
-                <Text style={{fontFamily: 'Poppins_Regular', fontSize: scale(15), opacity: 0.6, marginTop: scale(-8)}}>{displayPercentage(category.value)}%</Text>
+                <View style={{height: scale(10), width: scale((displayPercentage(category.cost) / displayPercentage(categoryData[0].cost) * 230) <= 10 ? 10 : displayPercentage(category.cost) / displayPercentage(categoryData[0].cost) * 230), borderRadius: scale(5), backgroundColor: database.getCategoryColor(userId!, category.name), marginTop: scale(-10)}}></View>
+                <Text style={{fontFamily: 'Poppins_Regular', fontSize: scale(15), opacity: 0.6, marginTop: scale(-8)}}>{displayPercentage(category.cost)}%</Text>
               </View>
             </View>
           )
