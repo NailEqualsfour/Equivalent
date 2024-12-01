@@ -7,6 +7,7 @@ import * as Font from 'expo-font';
 import Swiper from 'react-native-swiper'
 import { StatusBar } from 'expo-status-bar';
 import { View, Text, Image, TouchableOpacity, StatusBar as statusbar, Platform } from "react-native";
+import moment from 'moment';
 import { scale } from 'react-native-size-matters';
 import UserSession from "./UserSession";
 import Index from "./index";
@@ -28,6 +29,7 @@ export default function Layout() {
       deviceId = await Application.getAndroidId();
     }
     console.log('device ID :', deviceId) // Mine: 6d40f748dd1d8bbe   Caro: 12138508123cda2f
+    console.log('moment:', moment().format('YYYY-'))
     UserSession().setUserId(deviceId)
 
     await Font.loadAsync({

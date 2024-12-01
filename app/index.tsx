@@ -277,7 +277,7 @@ export default function Index() {
 
       <View>
         <Modal visible={popUpVisible} transparent={true} statusBarTranslucent>
-          <TouchableOpacity onPress={toggleVisibility} activeOpacity={1} style={{flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.8)', alignItems: 'center', justifyContent: 'center'}}>
+          <TouchableOpacity onPress={toggleVisibility} activeOpacity={1} style={{flex: 1, opacity: 0.8, backgroundColor: 'black', alignItems: 'center', justifyContent: 'center'}}>
             
             {categoryList.map((category, index) => {
               return (

@@ -1,3 +1,5 @@
+import moment from "moment"
+
 function DatabaseService() {
 
   var users = [
@@ -11,6 +13,11 @@ function DatabaseService() {
         { name: 'Rent', color: '#06D3E2', position: 5 },
         { name: 'Shopping', color: '#04BF62', position: 6 },
         { name: 'Meal', color: '#E3346E', position: 7 }
+      ],
+      budgets: [
+        {budget: 700, time: '2024-12'},
+        {budget: 50, time: '2024-11'},
+        {budget: 1000, time: '2023-11'},
       ]
     },
     { 
@@ -19,21 +26,27 @@ function DatabaseService() {
         { name: 'Transport', color: 'white', position: 0 },
         { name: 'Shopping', color: 'black', position: 1 },
         { name: 'Meal', color: '#E3346E', position: 2 }
+      ],
+      budgets: [
+        {budget: 700, time: '2024-12'},
+        {budget: 700, time: '2024-11'},
+        {budget: 1000, time: '2023-11'},
       ]
     } 
   ]
 
   var transactions = [
-    { userId: '6d40f748dd1d8bbe', category: 'Wife', cost: 2.1, name: '' },
-    { userId: '6d40f748dd1d8bbe', category: 'Wife', cost: 100, name: '' },
-    { userId: '6d40f748dd1d8bbe', category: 'Rent', cost: 230, name: 'First rent at mama house' },
-    { userId: '6d40f748dd1d8bbe', category: 'Transport', cost: 49.20, name: '' },
-    { userId: '6d40f748dd1d8bbe', category: 'Entertainment', cost: 41.40, name: '' },
-    { userId: '6d40f748dd1d8bbe', category: 'Wife', cost: 54, name: '' },
-    { userId: '6d40f748dd1d8bbe', category: 'Meal', cost: 10, name: '' },
-    { userId: '12138508123cda2f', category: 'Skincare', cost: 100, name: '' },
-    { userId: '12138508123cda2f', category: 'Skincare', cost: 50, name: '' },
-    { userId: '6d40f748dd1d8bbe', category: 'Skincare', cost: 2, name: '' }, 
+    { userId: '6d40f748dd1d8bbe', category: 'Wife', cost: 2.1, name: '', time: '2024-12-01-23:58:10' },
+    { userId: '6d40f748dd1d8bbe', category: 'Wife', cost: 100, name: '', time: '2024-12-01-23:58:12' },
+    { userId: '6d40f748dd1d8bbe', category: 'Rent', cost: 230, name: 'First rent at mama house', time: '2024-12-01-23:38:12' },
+    { userId: '6d40f748dd1d8bbe', category: 'Transport', cost: 49.20, name: '', time: '2024-11-21-23:58:12' },
+    { userId: '6d40f748dd1d8bbe', category: 'Entertainment', cost: 41.40, name: '', time: '2024-12-01-23:58:12' },
+    { userId: '6d40f748dd1d8bbe', category: 'Wife', cost: 54, name: '', time: '2024-12-01-23:58:12' },
+    { userId: '6d40f748dd1d8bbe', category: 'Meal', cost: 10, name: '', time: '2024-12-01-23:58:12' },
+    { userId: '12138508123cda2f', category: 'Skincare', cost: 100, name: '', time: '2024-12-01-23:58:12' },
+    { userId: '12138508123cda2f', category: 'Skincare', cost: 50, name: '', time: '2024-12-01-23:58:12' },
+    { userId: '6d40f748dd1d8bbe', category: 'Skincare', cost: 2, name: '', time: '2024-12-01-23:58:12' }, 
+    { userId: '6d40f748dd1d8bbe', category: 'Shopping', cost: 69.75, name: '', time: '2024-12-01-23:58:12' }, 
   ]
 
 
@@ -55,6 +68,43 @@ function DatabaseService() {
     }
     return 'black'
   }
+  function getBudgetByPeriod(userId: string, period: string) {
+    var returnBudget = 0
+    if (period == 'This month') {
+      for (var budget of getUserById(userId)?.budgets!) {
+        if (budget.time.includes(moment().format('YYYY-MM'))) {
+          returnBudget = returnBudget + budget.budget
+        }
+      }
+    }
+    if (period == 'Last month') {
+      for (var budget of getUserById(userId)?.budgets!) {
+        if (budget.time.includes(moment().subtract(1, 'months').format('YYYY-MM'))) {
+          returnBudget = returnBudget + budget.budget
+        }
+      }
+    }
+    if (period == 'This year') {
+      for (var budget of getUserById(userId)?.budgets!) {
+        if (budget.time.includes(moment().format('YYYY-'))) {
+          returnBudget = returnBudget + budget.budget
+        }
+      }
+    }
+    if (period == 'Last year') {
+      for (var budget of getUserById(userId)?.budgets!) {
+        if (budget.time.includes(moment().subtract(1, 'years').format('YYYY-'))) {
+          returnBudget = returnBudget + budget.budget
+        }
+      }
+    }
+    if (period == 'Lifetime') {
+      for (var budget of getUserById(userId)?.budgets!) {
+        returnBudget = returnBudget + budget.budget
+      }
+    }
+    return returnBudget
+  }
 
 
 
@@ -68,6 +118,41 @@ function DatabaseService() {
     }
     return returnList
   }
+  function getTransactionByPeriod(userId: string, period: string) {
+    var returnList = []
+    if (period == 'This month') {
+      for (var transaction of getTransactionByUserId(userId)) {
+        if (moment(transaction.time, 'YYYY-MM-DD-HH:mm:ss').month() == moment().month()) {
+          returnList.push(transaction)
+        }
+      }
+    }
+    if (period == 'Last month') {
+      for (var transaction of getTransactionByUserId(userId)) {
+        if (moment(transaction.time, 'YYYY-MM-DD-HH:mm:ss').month() == moment().subtract(1, 'months').month()) {
+          returnList.push(transaction)
+        }
+      }
+    }
+    if (period == 'This year') {
+      for (var transaction of getTransactionByUserId(userId)) {
+        if (moment(transaction.time, 'YYYY-MM-DD-HH:mm:ss').year() == moment().year()) {
+          returnList.push(transaction)
+        }
+      }
+    }
+    if (period == 'Last year') {
+      for (var transaction of getTransactionByUserId(userId)) {
+        if (moment(transaction.time, 'YYYY-MM-DD-HH:mm:ss').year() == moment().subtract(1, 'years').year()) {
+          returnList.push(transaction)
+        }
+      }
+    }
+    if (period == 'Lifetime') {
+      returnList = getTransactionByUserId(userId)
+    }
+    return returnList
+  }
   function getTransactionByCategory(userId: string, category: string) {
     var returnList = []
     for (var transaction of getTransactionByUserId(userId)) {
@@ -77,13 +162,13 @@ function DatabaseService() {
     }
     return returnList
   }
-  function getTransactionGroupbyCategory(userId: string) {
+  function getTransactionGroupbyCategoryByPeriod(userId: string, period: string) {
     const returnList: { userId: string; name: string; cost: number }[] = [];
     const categoryMap: Record<string, { userId: string; name: string; cost: number }> = {};
-    for (const transaction of getTransactionByUserId(userId)) {
-      if (!categoryMap[transaction.category]) {
-        categoryMap[transaction.category] = { userId, name: transaction.category, cost: 0 };
-      }
+    for (var category of getUserById(userId)?.categories!) {
+      categoryMap[category.name] = { userId, name: category.name, cost: 0}
+    }
+    for (const transaction of getTransactionByPeriod(userId, period)) {
       categoryMap[transaction.category].cost += transaction.cost;
     }
     for (const key in categoryMap) {
@@ -138,9 +223,10 @@ function DatabaseService() {
   return {
     getUserById,
     getCategoryColor,
+    getBudgetByPeriod,
     getTransactionByUserId,
     getTransactionByCategory,
-    getTransactionGroupbyCategory
+    getTransactionGroupbyCategoryByPeriod
   }
 
 }
