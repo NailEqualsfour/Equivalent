@@ -18,7 +18,6 @@ export default function Spending() {
   function updateCategoryData(period: string) {
     setCategoryData(database.getTransactionGroupbyCategoryByPeriod(userId!, period))
   }
-  categoryData.sort((a, b) => b.cost - a.cost)
   
   var [spent, setSpent] = useState(0)
   function displayPercentage(value: number) {
