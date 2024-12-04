@@ -6,7 +6,7 @@ function DatabaseService() {
     { 
       userId: '6d40f748dd1d8bbe', // Mine
       categories: [
-        { name: 'Wife', color: '#F97A42', position: 0 },
+        { name: 'Wife', color: '#F97A42', position: 0 }, //name 13 string
         { name: 'Entertainment', color: '#EC4EA4', position: 1 },
         { name: 'Skincare', color: '#B1E733', position: 2 },
         { name: 'Transport', color: '#6061D6', position: 4 },
@@ -36,12 +36,12 @@ function DatabaseService() {
   ]
 
   var transactions = [
-    { userId: '6d40f748dd1d8bbe', category: 'Wife', cost: 2.1, name: '', time: '2024-12-01-23:58:10' },
-    { userId: '6d40f748dd1d8bbe', category: 'Wife', cost: 100, name: '', time: '2024-12-01-23:58:12' },
-    { userId: '6d40f748dd1d8bbe', category: 'Rent', cost: 230, name: 'First rent at mama house', time: '2024-12-01-23:38:12' },
+    { userId: '6d40f748dd1d8bbe', category: 'Wife', cost: 2.1, name: '', time: '2024-12-01-23:58:10' }, //name 18 String
+    { userId: '6d40f748dd1d8bbe', category: 'Wife', cost: 100, name: '', time: '2024-12-17-23:58:12' },
+    { userId: '6d40f748dd1d8bbe', category: 'Rent', cost: 230, name: 'First rent for ma', time: '2024-12-01-23:38:12' },
     { userId: '6d40f748dd1d8bbe', category: 'Transport', cost: 49.20, name: '', time: '2024-11-21-23:58:12' },
-    { userId: '6d40f748dd1d8bbe', category: 'Entertainment', cost: 41.40, name: '', time: '2024-12-01-23:58:12' },
-    { userId: '6d40f748dd1d8bbe', category: 'Wife', cost: 54, name: '', time: '2024-12-01-23:58:12' },
+    { userId: '6d40f748dd1d8bbe', category: 'Entertainment', cost: 41.40, name: '', time: '2024-09-30-23:58:12' },
+    { userId: '6d40f748dd1d8bbe', category: 'Wife', cost: 54, name: 'Rose', time: '2024-12-01-23:58:12' },
     { userId: '6d40f748dd1d8bbe', category: 'Meal', cost: 10, name: '', time: '2024-12-01-23:58:12' },
     { userId: '12138508123cda2f', category: 'Skincare', cost: 100, name: '', time: '2024-12-01-23:58:12' },
     { userId: '12138508123cda2f', category: 'Skincare', cost: 50, name: '', time: '2024-12-01-23:58:12' },
@@ -116,6 +116,7 @@ function DatabaseService() {
         returnList.push(transaction)
       }
     }
+    returnList.sort((a, b) => a.time.localeCompare(b.time))
     return returnList
   }
   function getTransactionByPeriod(userId: string, period: string) {
@@ -151,6 +152,7 @@ function DatabaseService() {
     if (period == 'Lifetime') {
       returnList = getTransactionByUserId(userId)
     }
+    returnList.sort((a, b) => b.cost - a.cost)
     return returnList
   }
   function getTransactionByCategory(userId: string, category: string) {
@@ -160,6 +162,7 @@ function DatabaseService() {
         returnList.push(transaction)
       }
     }
+    returnList.sort((a, b) => b.cost - a.cost)
     return returnList
   }
   function getTransactionGroupbyCategoryByPeriod(userId: string, period: string) {
@@ -174,6 +177,7 @@ function DatabaseService() {
     for (const key in categoryMap) {
       returnList.push(categoryMap[key]);
     }
+    returnList.sort((a, b) => b.cost - a.cost)
     return returnList;
   }
 
