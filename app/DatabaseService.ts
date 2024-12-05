@@ -47,6 +47,19 @@ function DatabaseService() {
     { userId: '12138508123cda2f', category: 'Skincare', cost: 50, name: '', time: '2024-12-01-23:58:12' },
     { userId: '6d40f748dd1d8bbe', category: 'Skincare', cost: 2, name: '', time: '2024-12-01-23:58:12' }, 
     { userId: '6d40f748dd1d8bbe', category: 'Shopping', cost: 69.75, name: '', time: '2024-12-01-23:58:12' }, 
+    { userId: '6d40f748dd1d8bbe', category: 'Entertainment', cost: 41.40, name: '', time: '2024-09-30-23:58:12' },
+    { userId: '6d40f748dd1d8bbe', category: 'Entertainment', cost: 41.40, name: '', time: '2024-09-30-23:58:12' },
+    { userId: '6d40f748dd1d8bbe', category: 'Entertainment', cost: 41.40, name: '', time: '2024-09-30-23:58:12' },
+    { userId: '6d40f748dd1d8bbe', category: 'Entertainment', cost: 41.40, name: '', time: '2024-09-30-23:58:12' },
+    { userId: '6d40f748dd1d8bbe', category: 'Entertainment', cost: 41.40, name: '', time: '2024-09-30-23:58:12' },
+    { userId: '6d40f748dd1d8bbe', category: 'Entertainment', cost: 41.40, name: '', time: '2024-09-30-23:58:12' },
+    { userId: '6d40f748dd1d8bbe', category: 'Entertainment', cost: 41.40, name: '', time: '2024-09-30-23:58:12' },
+    { userId: '6d40f748dd1d8bbe', category: 'Entertainment', cost: 41.40, name: '', time: '2024-09-30-23:58:12' },
+    { userId: '6d40f748dd1d8bbe', category: 'Entertainment', cost: 41.40, name: '', time: '2024-09-30-23:58:12' },
+    { userId: '6d40f748dd1d8bbe', category: 'Skincare', cost: 2, name: '', time: '2024-12-01-23:58:12' }, 
+    { userId: '6d40f748dd1d8bbe', category: 'Shopping', cost: 69.75, name: '', time: '2024-12-01-23:58:12' }, 
+    { userId: '6d40f748dd1d8bbe', category: 'Skincare', cost: 2, name: '', time: '2024-12-01-23:58:12' }, 
+    { userId: '6d40f748dd1d8bbe', category: 'Shopping', cost: 69.75, name: '', time: '2024-12-01-23:58:12' }, 
   ]
 
 
