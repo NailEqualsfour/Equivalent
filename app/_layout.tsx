@@ -7,6 +7,7 @@ import * as Font from 'expo-font';
 import Swiper from 'react-native-swiper'
 import { StatusBar } from 'expo-status-bar';
 import { View, Text, Image, TouchableOpacity, StatusBar as statusbar, Platform, ImageBackground } from "react-native";
+import Animated, { interpolateColor, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import moment from 'moment';
 import { scale } from 'react-native-size-matters';
 import UserSession from "./UserSession";
@@ -60,12 +61,14 @@ export default function Layout() {
       setFadeOpacity((x-550.84)/330.5)
     }
     else{
-      setFadeOpacity((1211.54-x)/330.2) //largest at 881.34, smallest point at 1211.54
+      setFadeOpacity((1211.54-x)/330.2)
     }
   }
   function getFadeValue() {
     return Number(fadeTint.substr(4, 3))
   }
+
+
 
   if (appIsReady) {
     return (
@@ -92,17 +95,17 @@ export default function Layout() {
           </View>
         </Swiper> 
 
-        <View style={{position: 'absolute', marginTop: statusbar.currentHeight, left: scale(25), top: scale(6), pointerEvents: 'none'}}>
+        <Animated.View style={{position: 'absolute', marginTop: statusbar.currentHeight, left: scale(25), top: scale(6), pointerEvents: 'none'}}>
           <Image source={require('../assets/images/calendar.png')} style={{opacity: fadeOpacity, height: scale(25), width: scale(25)}}></Image>
-        </View>
+        </Animated.View>
 
         <View style={{position: 'absolute', marginTop: statusbar.currentHeight, alignSelf: 'center'}}>
             <Text style={{fontFamily: 'Poppins_Light', color: fadeTint, fontSize: scale(25), letterSpacing: scale(1)}}>Equivalent</Text>
         </View>
 
         <View style={{position: 'absolute', marginTop: statusbar.currentHeight, alignSelf: 'flex-end'}}>
-          <TouchableOpacity style={{right: scale(17), top: scale(6)}}>
-            <Image source={require('../assets/images/more.png')} style={{tintColor: fadeTint, height: scale(25), width: scale(25)}}></Image>
+          <TouchableOpacity style={{right: scale(17), top: scale(5)}}>
+            <Image source={require('../assets/images/settings.png')} style={{tintColor: fadeTint, height: scale(25), width: scale(25)}}></Image>
           </TouchableOpacity>
         </View>
 
