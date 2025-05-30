@@ -9,7 +9,7 @@ import { StatusBar } from 'expo-status-bar';
 import { View, Text, Image, TouchableOpacity, StatusBar as statusbar, Platform, ImageBackground } from "react-native";
 import Animated, { interpolateColor, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import moment from 'moment';
-import { scale } from 'react-native-size-matters';
+import { scale, verticalScale } from 'react-native-size-matters';
 import UserSession from "./UserSession";
 import Index from "./index";
 import Spending from "./spending";
@@ -95,7 +95,7 @@ export default function Layout() {
           </View>
         </Swiper> 
 
-        <Animated.View style={{position: 'absolute', marginTop: statusbar.currentHeight, left: scale(25), top: scale(6), pointerEvents: 'none'}}>
+        <Animated.View style={{position: 'absolute', marginTop: statusbar.currentHeight, left: scale(25), top: verticalScale(4.5), pointerEvents: 'none'}}>
           <Image source={require('../assets/images/calendar.png')} style={{opacity: fadeOpacity, height: scale(25), width: scale(25)}}></Image>
         </Animated.View>
 
@@ -104,12 +104,12 @@ export default function Layout() {
         </View>
 
         <View style={{position: 'absolute', marginTop: statusbar.currentHeight, alignSelf: 'flex-end'}}>
-          <TouchableOpacity style={{right: scale(17), top: scale(5)}}>
+          <TouchableOpacity style={{right: scale(17), top: verticalScale(4.5)}}>
             <Image source={require('../assets/images/settings.png')} style={{tintColor: fadeTint, height: scale(25), width: scale(25)}}></Image>
           </TouchableOpacity>
         </View>
 
-        <View style={{position: 'absolute', flexDirection: 'row', bottom: scale(20), alignSelf: 'center'}}>
+        <View style={{position: 'absolute', flexDirection: 'row', bottom: verticalScale(19.5), alignSelf: 'center'}}>
           <Image source={require('../assets/images/dot.png')} style={{tintColor: page == 0 ? 'white' : '#747474', height: scale(10), width: scale(10)}}></Image>
           <Image source={require('../assets/images/dot.png')} style={{tintColor: page == 1 ? 'white' : '#747474', height: scale(10), width: scale(10)}}></Image>
           <Image source={require('../assets/images/dot.png')} style={{tintColor: page == 2 ? 'white' : '#747474', height: scale(10), width: scale(10)}}></Image>

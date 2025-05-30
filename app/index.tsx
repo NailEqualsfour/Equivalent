@@ -1,5 +1,5 @@
 import { StatusBar, Text, StyleSheet, Image, ImageBackground, View, TouchableOpacity, Modal, PanResponder, Animated } from 'react-native';
-import { scale } from 'react-native-size-matters';
+import { scale, verticalScale } from 'react-native-size-matters';
 import React, { useState, useRef, useEffect } from "react";
 import UserSession from "./UserSession";
 
@@ -144,7 +144,7 @@ export default function Index() {
   }, [activeCategory]);
 
   const translateY = useRef(new Animated.Value(0)).current;
-  const MAX_TRANSLATE_Y = scale(-65);
+  const MAX_TRANSLATE_Y = verticalScale(-60);
 
   const panResponder = useRef(
     PanResponder.create({
@@ -161,7 +161,7 @@ export default function Index() {
         if (gestureState.dy < 0) { // Ensure only swiping up affects the position
           const clampedY = Math.max(gestureState.dy, MAX_TRANSLATE_Y)
           translateY.setValue(clampedY);
-          setPulseFade((scale(60) + scale(clampedY)) / scale(60))
+          setPulseFade((verticalScale(60) + verticalScale(clampedY)) / verticalScale(60))
         }
       },
       onPanResponderTerminate: () => {
@@ -193,59 +193,59 @@ export default function Index() {
   return (
     <>
       <ImageBackground {...panResponder.panHandlers} source={require('../assets/images/VentiSitDark.jpg')} style={{flex: 1, paddingTop: StatusBar.currentHeight}}>
-        <Text style={{position: 'absolute', alignSelf: 'center', marginTop: scale(175) + StatusBar.currentHeight!}}>
-          <Text style={{fontFamily: 'Poppins_Medium', color: 'white', fontSize: scale(50)}}>{Number(budget) <= -10000 ? displayDollar('-9999.99') : displayDollar(budget)}</Text>
-          <Text style={{fontFamily: 'Poppins_Medium', color: 'white', fontSize: scale(25)}}>{Number(budget) <= -10000 ? displayCent('-9999.99') : displayCent(budget)}</Text>
+        <Text style={{position: 'absolute', alignSelf: 'center', marginTop: verticalScale(165) + StatusBar.currentHeight!}}>
+          <Text style={{fontFamily: 'Poppins_Medium', color: 'white', fontSize: verticalScale(50)}}>{Number(budget) <= -10000 ? displayDollar('-9999.99') : displayDollar(budget)}</Text>
+          <Text style={{fontFamily: 'Poppins_Medium', color: 'white', fontSize: verticalScale(25)}}>{Number(budget) <= -10000 ? displayCent('-9999.99') : displayCent(budget)}</Text>
         </Text>
-        <Text style={{position: 'absolute', alignSelf: 'center', marginTop: scale(238) + StatusBar.currentHeight!, fontFamily: 'Segoe_Ui_Symbol', color: 'white', fontSize: scale(25), lineHeight: scale(25)}}>Budget Left</Text>
+        <Text style={{position: 'absolute', alignSelf: 'center', marginTop: verticalScale(230) + StatusBar.currentHeight!, fontFamily: 'Segoe_Ui_Symbol', color: 'white', fontSize: verticalScale(25), lineHeight: verticalScale(25)}}>Budget Left</Text>
 
-        <View style={{position: 'absolute', alignSelf: 'center', marginTop: scale(305), opacity: pulseFade}}>
-          <Image source={require('../assets/images/arrow_up.png')} style={{opacity: expense == '' ? 0 : firstPulse, tintColor: 'white', height: scale(20), width: scale(30), resizeMode: 'stretch', marginBottom: scale(-6)}}></Image>
-          <Image source={require('../assets/images/arrow_up.png')} style={{opacity: expense == '' ? 0 : secondPulse, tintColor: 'white', height: scale(20), width: scale(30), resizeMode: 'stretch', marginBottom: scale(-6)}}></Image>
-          <Image source={require('../assets/images/arrow_up.png')} style={{opacity: expense == '' ? 0 : thirdPulse, tintColor: 'white', height: scale(20), width: scale(30), resizeMode: 'stretch'}}></Image>
+        <View style={{position: 'absolute', alignSelf: 'center', marginTop: verticalScale(295), opacity: pulseFade}}>
+          <Image source={require('../assets/images/arrow_up.png')} style={{opacity: expense == '' ? 0 : firstPulse, tintColor: 'white', height: verticalScale(19.5), width: scale(30), resizeMode: 'stretch', marginBottom: verticalScale(-6)}}></Image>
+          <Image source={require('../assets/images/arrow_up.png')} style={{opacity: expense == '' ? 0 : secondPulse, tintColor: 'white', height: verticalScale(19.5), width: scale(30), resizeMode: 'stretch', marginBottom: verticalScale(-6)}}></Image>
+          <Image source={require('../assets/images/arrow_up.png')} style={{opacity: expense == '' ? 0 : thirdPulse, tintColor: 'white', height: verticalScale(19.5), width: scale(30), resizeMode: 'stretch'}}></Image>
         </View>
         
-        <Animated.Text style={{textAlign: 'center', marginTop: 'auto', marginBottom: scale(10), transform: [{translateY}]}}>
+        <Animated.Text style={{textAlign: 'center', marginTop: 'auto', marginBottom: verticalScale(10), transform: [{translateY}]}}>
           <Text style={{fontFamily: 'Poppins_Light', color: 'white', fontSize: scale(30)}}>{displayDollar(expense, true)}</Text>
           <Text style={{fontFamily: 'Poppins_Light', color: 'white', fontSize: scale(18)}}>{displayCent(expense)}</Text>
         </Animated.Text>
 
         <View  {...panResponder.panHandlers}>
-          <View style={{marginBottom: scale(50)}}>
-            <View style={{marginLeft: scale(75), marginRight: scale(75), justifyContent: 'space-between', height:scale(270)}}>
+          <View style={{marginBottom: verticalScale(50)}}>
+            <View style={{marginLeft: scale(75), marginRight: scale(75), justifyContent: 'space-between', height: verticalScale(260)}}>
               <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
                 <TouchableOpacity onPress={() => type('7')} style={{width: scale(55), height: scale(55), borderRadius: scale(30), backgroundColor: "rgba(0, 0, 0, 0.6)", justifyContent: 'center', alignItems: 'center'}}>
-                  <Text style={{fontFamily: 'Poppins_Light', color: 'white', fontSize: scale(25), paddingTop: scale(5), paddingLeft: scale(3)}}>7</Text>
+                  <Text style={{fontFamily: 'Poppins_Light', color: 'white', fontSize: scale(25), paddingTop: verticalScale(5), paddingLeft: scale(3)}}>7</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => type('8')} style={{width: scale(55), height: scale(55), borderRadius: scale(30), backgroundColor: "rgba(0, 0, 0, 0.6)", justifyContent: 'center', alignItems: 'center'}}>
-                  <Text style={{fontFamily: 'Poppins_Light', color: 'white', fontSize: scale(25), paddingTop: scale(5), paddingLeft: scale(3)}}>8</Text>
+                  <Text style={{fontFamily: 'Poppins_Light', color: 'white', fontSize: scale(25), paddingTop: verticalScale(5), paddingLeft: scale(3)}}>8</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => type('9')} style={{width: scale(55), height: scale(55), borderRadius: scale(30), backgroundColor: "rgba(0, 0, 0, 0.6)", justifyContent: 'center', alignItems: 'center'}}>
-                  <Text style={{fontFamily: 'Poppins_Light', color: 'white', fontSize: scale(25), paddingTop: scale(5), paddingLeft: scale(3)}}>9</Text>
+                  <Text style={{fontFamily: 'Poppins_Light', color: 'white', fontSize: scale(25), paddingTop: verticalScale(5), paddingLeft: scale(3)}}>9</Text>
                 </TouchableOpacity>
               </View>
 
               <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
                 <TouchableOpacity onPress={() => type('4')} style={{width: scale(55), height: scale(55), borderRadius: scale(30), backgroundColor: "rgba(0, 0, 0, 0.6)", justifyContent: 'center', alignItems: 'center'}}>
-                  <Text style={{fontFamily: 'Poppins_Light', color: 'white', fontSize: scale(25), paddingTop: scale(5), paddingLeft: scale(3)}}>4</Text>
+                  <Text style={{fontFamily: 'Poppins_Light', color: 'white', fontSize: scale(25), paddingTop: verticalScale(5), paddingLeft: scale(3)}}>4</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => type('5')} style={{width: scale(55), height: scale(55), borderRadius: scale(30), backgroundColor: "rgba(0, 0, 0, 0.6)", justifyContent: 'center', alignItems: 'center'}}>
-                  <Text style={{fontFamily: 'Poppins_Light', color: 'white', fontSize: scale(25), paddingTop: scale(5), paddingLeft: scale(3)}}>5</Text>
+                  <Text style={{fontFamily: 'Poppins_Light', color: 'white', fontSize: scale(25), paddingTop: verticalScale(5), paddingLeft: scale(3)}}>5</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => type('6')} style={{width: scale(55), height: scale(55), borderRadius: scale(30), backgroundColor: "rgba(0, 0, 0, 0.6)", justifyContent: 'center', alignItems: 'center'}}>
-                  <Text style={{fontFamily: 'Poppins_Light', color: 'white', fontSize: scale(25), paddingTop: scale(5), paddingLeft: scale(3)}}>6</Text>
+                  <Text style={{fontFamily: 'Poppins_Light', color: 'white', fontSize: scale(25), paddingTop: verticalScale(5), paddingLeft: scale(3)}}>6</Text>
                 </TouchableOpacity>
               </View>
 
               <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
                 <TouchableOpacity onPress={() => type('1')} style={{width: scale(55), height: scale(55), borderRadius: scale(30), backgroundColor: "rgba(0, 0, 0, 0.6)", justifyContent: 'center', alignItems: 'center'}}>
-                  <Text style={{fontFamily: 'Poppins_Light', color: 'white', fontSize: scale(25), paddingTop: scale(5), paddingLeft: scale(3)}}>1</Text>
+                  <Text style={{fontFamily: 'Poppins_Light', color: 'white', fontSize: scale(25), paddingTop: verticalScale(5), paddingLeft: scale(3)}}>1</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => type('2')} style={{width: scale(55), height: scale(55), borderRadius: scale(30), backgroundColor: "rgba(0, 0, 0, 0.6)", justifyContent: 'center', alignItems: 'center'}}>
-                  <Text style={{fontFamily: 'Poppins_Light', color: 'white', fontSize: scale(25), paddingTop: scale(5), paddingLeft: scale(3)}}>2</Text>
+                  <Text style={{fontFamily: 'Poppins_Light', color: 'white', fontSize: scale(25), paddingTop: verticalScale(5), paddingLeft: scale(3)}}>2</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => type('3')} style={{width: scale(55), height: scale(55), borderRadius: scale(30), backgroundColor: "rgba(0, 0, 0, 0.6)", justifyContent: 'center', alignItems: 'center'}}>
-                  <Text style={{fontFamily: 'Poppins_Light', color: 'white', fontSize: scale(25), paddingTop: scale(5), paddingLeft: scale(3)}}>3</Text>
+                  <Text style={{fontFamily: 'Poppins_Light', color: 'white', fontSize: scale(25), paddingTop: verticalScale(5), paddingLeft: scale(3)}}>3</Text>
                 </TouchableOpacity>
               </View>
 
@@ -254,7 +254,7 @@ export default function Index() {
                   <Image source={require('../assets/images/backspace.png')} style={{height: scale(24), width: scale(24)}}></Image>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => type('0')} style={{width: scale(55), height: scale(55), borderRadius: scale(30), backgroundColor: "rgba(0, 0, 0, 0.6)", justifyContent: 'center', alignItems: 'center'}}>
-                  <Text style={{fontFamily: 'Poppins_Light', color: 'white', fontSize: scale(25), paddingTop: scale(5), paddingLeft: scale(3)}}>0</Text>
+                  <Text style={{fontFamily: 'Poppins_Light', color: 'white', fontSize: scale(25), paddingTop: verticalScale(5), paddingLeft: scale(3)}}>0</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => type('.')} style={{width: scale(55), height: scale(55), borderRadius: scale(30), backgroundColor: "rgba(0, 0, 0, 0.6)", justifyContent: 'center', alignItems: 'center'}}>
                   <Text style={{fontFamily: 'Poppins_Light', color: 'white', fontSize: scale(40)}}>.</Text>
@@ -263,13 +263,13 @@ export default function Index() {
             </View>
           </View>
 
-          <TouchableOpacity onPress={toggleVisibility} activeOpacity={1} style={{flexDirection: 'row', position: 'absolute', right: scale(-60), marginTop: scale(120), marginBottom: 'auto', width: scale(200), height: scale(30), borderRadius: scale(30), backgroundColor: "rgba(0, 0, 0, 0.6)", transform: [{rotate: '-90deg'}], alignItems: 'center', justifyContent: 'space-between'}}>
+          <TouchableOpacity onPress={toggleVisibility} activeOpacity={1} style={{flexDirection: 'row', position: 'absolute', right: scale(-60), marginTop: verticalScale(115), marginBottom: 'auto', width: verticalScale(195), height: scale(30), borderRadius: scale(30), backgroundColor: "rgba(0, 0, 0, 0.6)", transform: [{rotate: '-90deg'}], alignItems: 'center', justifyContent: 'space-between'}}>
             <TouchableOpacity onPress={() => scrollCategory('down')}>
-              <Image source={require('../assets/images/arrow_left.png')} style={{height: scale(20), width: scale(20), tintColor: 'white', marginLeft: scale(5), marginRight: scale(5)}}></Image>
+              <Image source={require('../assets/images/arrow_left.png')} style={{height: verticalScale(20), width: verticalScale(20), tintColor: 'white', marginLeft: scale(5), marginRight: scale(5)}}></Image>
             </TouchableOpacity>
             <Text style={{fontFamily: 'Poppins_Light', color: 'white', fontSize: scale(20), includeFontPadding: false}}>{activeCategory}</Text>
             <TouchableOpacity onPress={() => scrollCategory('up')}>
-              <Image source={require('../assets/images/arrow_right.png')} style={{height: scale(20), width: scale(20), tintColor: 'white', marginLeft: scale(5), marginRight: scale(5)}}></Image>
+              <Image source={require('../assets/images/arrow_right.png')} style={{height: verticalScale(20), width: verticalScale(20), tintColor: 'white', marginLeft: scale(5), marginRight: scale(5)}}></Image>
             </TouchableOpacity>
           </TouchableOpacity>
         </View>
