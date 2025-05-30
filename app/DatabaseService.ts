@@ -15,6 +15,7 @@ function DatabaseService() {
         { name: 'Meal', color: '#E3346E', position: 7 }
       ],
       budgets: [
+        {budget: 700, time: '2025-05'},
         {budget: 700, time: '2024-12'},
         {budget: 50, time: '2024-11'},
         {budget: 1000, time: '2023-11'},
@@ -36,17 +37,17 @@ function DatabaseService() {
   ]
 
   var transactions = [
-    { userId: '6d40f748dd1d8bbe', category: 'Wife', cost: 2.1, name: '', time: '2024-12-01-23:58:10' }, //name 18 String
-    { userId: '6d40f748dd1d8bbe', category: 'Wife', cost: 100, name: '', time: '2024-12-17-23:58:12' },
-    { userId: '6d40f748dd1d8bbe', category: 'Rent', cost: 230, name: 'First rent for ma', time: '2024-12-01-23:38:12' },
-    { userId: '6d40f748dd1d8bbe', category: 'Transport', cost: 49.20, name: '', time: '2024-11-21-23:58:12' },
-    { userId: '6d40f748dd1d8bbe', category: 'Entertainment', cost: 41.40, name: '', time: '2024-09-30-23:58:12' },
-    { userId: '6d40f748dd1d8bbe', category: 'Wife', cost: 54, name: 'Rose', time: '2024-12-01-23:58:12' },
-    { userId: '6d40f748dd1d8bbe', category: 'Meal', cost: 10, name: '', time: '2024-12-01-23:58:12' },
-    { userId: '12138508123cda2f', category: 'Skincare', cost: 100, name: '', time: '2024-12-01-23:58:12' },
-    { userId: '12138508123cda2f', category: 'Skincare', cost: 50, name: '', time: '2024-12-01-23:58:12' },
-    { userId: '6d40f748dd1d8bbe', category: 'Skincare', cost: 2, name: '', time: '2024-12-01-23:58:12' }, 
-    { userId: '6d40f748dd1d8bbe', category: 'Shopping', cost: 69.75, name: '', time: '2024-12-01-23:58:12' }, 
+    { userId: '6d40f748dd1d8bbe', category: 'Wife', cost: 2.1, name: '', time: '2025-05-01-23:58:10' }, //name 18 String
+    { userId: '6d40f748dd1d8bbe', category: 'Wife', cost: 100, name: '', time: '2025-05-17-23:58:12' },
+    { userId: '6d40f748dd1d8bbe', category: 'Rent', cost: 230, name: 'First rent for ma', time: '2025-05-01-23:38:12' },
+    { userId: '6d40f748dd1d8bbe', category: 'Transport', cost: 49.20, name: '', time: '2025-05-21-23:58:12' },
+    { userId: '6d40f748dd1d8bbe', category: 'Entertainment', cost: 41.40, name: '', time: '2025-05-30-23:58:12' },
+    { userId: '6d40f748dd1d8bbe', category: 'Wife', cost: 54, name: 'Rose', time: '2025-05-01-23:58:12' },
+    { userId: '6d40f748dd1d8bbe', category: 'Meal', cost: 10, name: '', time: '2025-05-01-23:58:12' },
+    { userId: '12138508123cda2f', category: 'Skincare', cost: 100, name: '', time: '2025-05-01-23:58:12' },
+    { userId: '12138508123cda2f', category: 'Skincare', cost: 50, name: '', time: '2025-05-01-23:58:12' },
+    { userId: '6d40f748dd1d8bbe', category: 'Skincare', cost: 2, name: '', time: '2025-05-01-23:58:12' }, 
+    { userId: '6d40f748dd1d8bbe', category: 'Shopping', cost: 69.75, name: '', time: '2025-05-01-23:58:12' }, 
     { userId: '6d40f748dd1d8bbe', category: 'Entertainment', cost: 41.40, name: '', time: '2024-09-30-23:58:12' },
     { userId: '6d40f748dd1d8bbe', category: 'Entertainment', cost: 41.40, name: '', time: '2024-09-30-23:58:12' },
     { userId: '6d40f748dd1d8bbe', category: 'Entertainment', cost: 41.40, name: '', time: '2024-09-30-23:58:12' },

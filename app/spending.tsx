@@ -1,5 +1,5 @@
 import { StatusBar, Text, StyleSheet, Image, Platform, ImageBackground, View, SafeAreaView, ScrollView, Modal, TouchableOpacity } from 'react-native';
-import { scale } from 'react-native-size-matters';
+import { scale, verticalScale } from 'react-native-size-matters';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { useState } from 'react';
 import UserSession from "./UserSession";
@@ -78,16 +78,16 @@ export default function Spending() {
   return (
     <View style={{backgroundColor: '#E4E4E4', flex: 1}}>
 			<View>
-				<Text style={{position: 'absolute', alignSelf: 'center', marginTop: scale(175)}}>
-				  <Text style={{fontFamily: 'Poppins_Light', fontSize: scale(20)}}>Spent</Text>
+				<Text style={{position: 'absolute', alignSelf: 'center', marginTop: verticalScale(170)}}>
+				  <Text style={{fontFamily: 'Poppins_Light', fontSize: verticalScale(20)}}>Spent</Text>
 				</Text>
 
-				<Text style={{position: 'absolute', alignSelf: 'center', marginTop: scale(210)}}>
-					<Text style={{fontFamily: 'Poppins_Medium', fontSize: scale(35)}}>S${displayDollar(spent)}</Text>
-					<Text style={{fontFamily: 'Poppins_Medium', fontSize: scale(15)}}>{displayCent(spent)}</Text>
+				<Text style={{position: 'absolute', alignSelf: 'center', marginTop: verticalScale(205)}}>
+					<Text style={{fontFamily: 'Poppins_Medium', fontSize: verticalScale(33)}}>S${displayDollar(spent)}</Text>
+					<Text style={{fontFamily: 'Poppins_Medium', fontSize: verticalScale(15)}}>{displayCent(spent)}</Text>
 				</Text>
 
-        <TouchableOpacity onPress={toggleVisibility} style={{position: 'absolute', alignSelf: 'center', justifyContent: 'center', marginTop: scale(265), height: scale(25), width: scale(100), borderRadius: scale(8), backgroundColor: 'white', zIndex: 1}}>
+        <TouchableOpacity onPress={toggleVisibility} style={{position: 'absolute', alignSelf: 'center', justifyContent: 'center', marginTop: verticalScale(255), height: scale(25), width: scale(100), borderRadius: scale(8), backgroundColor: 'white', zIndex: 1}}>
           <Text style={{textAlign: 'center', marginRight: scale(17), fontFamily: 'Poppins_Light', fontSize: scale(12)}}>{activePeriod}</Text>
           <Image source={require('../assets/images/arrow_down.png')} style={{position: 'absolute', right: scale(5), height: scale(13), width: scale(17), resizeMode: 'stretch'}}></Image>
         </TouchableOpacity>
@@ -95,11 +95,11 @@ export default function Spending() {
         <View>
           <Modal visible={dropdownVisible} transparent={true} statusBarTranslucent>
             <TouchableOpacity onPress={toggleVisibility} activeOpacity={1} style={{flex: 1, opacity: 0.6, backgroundColor: 'black', alignItems: 'center', justifyContent: 'center'}}></TouchableOpacity>
-            <View style={{position: 'absolute', alignSelf: 'center', justifyContent: 'center', marginTop: scale(265), height: scale(25), width: scale(100), borderRadius: scale(8), backgroundColor: 'white', zIndex: 1}}>
+            <View style={{position: 'absolute', alignSelf: 'center', justifyContent: 'center', marginTop: verticalScale(255), height: scale(25), width: scale(100), borderRadius: scale(8), backgroundColor: 'white', zIndex: 1}}>
               <Text style={{textAlign: 'center', marginRight: scale(17), fontFamily: 'Poppins_Light', fontSize: scale(12)}}>{activePeriod}</Text>
               <Image source={require('../assets/images/arrow_down.png')} style={{position: 'absolute', right: scale(5), height: scale(13), width: scale(17), resizeMode: 'stretch'}}></Image>
             </View>
-            <View style={{position: 'absolute', alignSelf: 'center', justifyContent: 'center', marginTop: scale(265), paddingTop: scale(25), height: scale(30*(periodOptions.length - 1)), width: scale(100), borderRadius: scale(8), backgroundColor: 'white'}}>
+            <View style={{position: 'absolute', alignSelf: 'center', justifyContent: 'center', marginTop: verticalScale(255), paddingTop: verticalScale(25), height: scale(30*(periodOptions.length - 1)), width: scale(100), borderRadius: scale(8), backgroundColor: 'white'}}>
               {periodOptions.map((period, index) => {
                 if (period == activePeriod) {
                   return null
@@ -119,13 +119,13 @@ export default function Spending() {
         </View>
         
 
-				<View style={{position: 'absolute', alignSelf: 'center', marginTop: scale(130), height: scale(215), width: scale(215), transform: [{rotate: '90deg'}, {scaleX: -1}]}}>
-					<AnimatedCircularProgress size={scale(215)} width={scale(20)} fill={(1 - spent / budget) * 100} tintColor="#3D5875" backgroundColor="#E4E4E4" />
+				<View style={{position: 'absolute', alignSelf: 'center', marginTop: verticalScale(125.5), height: verticalScale(207.5), width: verticalScale(207.5), transform: [{rotate: '90deg'}, {scaleX: -1}]}}>
+					<AnimatedCircularProgress size={verticalScale(207.5)} width={verticalScale(19.5)} fill={(1 - spent / budget) * 100} tintColor="#3D5875" backgroundColor="#E4E4E4" />
 				</View>
-				<View style={{position: 'absolute', alignSelf: 'center', marginTop: scale(130), height: scale(215), width: scale(215), borderRadius: scale(105), borderColor: '#3D5875', borderWidth: scale(3)}}></View>
+				<View style={{position: 'absolute', alignSelf: 'center', marginTop: verticalScale(125.5), height: verticalScale(207.5), width: verticalScale(207.5), borderRadius: verticalScale(105), borderColor: '#3D5875', borderWidth: verticalScale(3)}}></View>
 
         {/* Not gonna lie, the color circle shets are still fucked up */}
-        <View style={{position: 'absolute', alignSelf: 'center', marginTop: scale(105), height: scale(265), width: scale(265)}}>
+        <View style={{position: 'absolute', alignSelf: 'center', marginTop: verticalScale(102), height: verticalScale(255.5), width: verticalScale(255.5)}}>
           {categoryData.map((category, index) => {
             var rotate = accumulatedRotation(category)
             var fill = (category.cost/spent)*(100 - nullWidth*validCount)
@@ -134,7 +134,7 @@ export default function Spending() {
             }
             return (
               <View key={index} style={{position: 'absolute', transform: [{rotate: rotate + 'deg'}, {scaleX: -1}, {scaleY: -1}]}}>
-                <AnimatedCircularProgress size={scale(265)} width={scale(8)} fill={fill} tintColor={database.getCategoryColor(userId!, category.name)} lineCap={'round'}/>
+                <AnimatedCircularProgress size={verticalScale(255.5)} width={verticalScale(8)} fill={fill} tintColor={database.getCategoryColor(userId!, category.name)} lineCap={'round'}/>
               </View>
             )
           })}
@@ -142,17 +142,17 @@ export default function Spending() {
 			</View>
 
 
-      <ScrollView fadingEdgeLength={scale(40)} style={{marginTop: scale(400), paddingLeft: scale(40), paddingRight: scale(40), marginBottom: scale(55)}}>
+      <ScrollView fadingEdgeLength={verticalScale(35)} style={{marginTop: verticalScale(385), paddingLeft: scale(40), paddingRight: scale(40), marginBottom: verticalScale(50)}}>
         {categoryData.map((category, index) => {
           return (
             <View key={index}>
               <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-                <Text style={{fontFamily: 'Poppins_Regular', fontSize: scale(17)}}>{category.name}</Text>
-                <Text style={{fontFamily: 'Poppins_Regular', fontSize: scale(17)}}>{category.cost == 0 ? '- ' : '-S$'+displayDollar(category.cost)+displayCent(category.cost)}</Text>
+                <Text style={{fontFamily: 'Poppins_Regular', fontSize: verticalScale(16)}}>{category.name}</Text>
+                <Text style={{fontFamily: 'Poppins_Regular', fontSize: verticalScale(16)}}>{category.cost == 0 ? '- ' : '-S$'+displayDollar(category.cost)+displayCent(category.cost)}</Text>
               </View>
-              <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: scale(1)}}>
-                <View style={{height: scale(10), width: scale((displayPercentage(category.cost) / displayPercentage(categoryData[0].cost) * 230) <= 10 ? 10 : displayPercentage(category.cost) / displayPercentage(categoryData[0].cost) * 230), borderRadius: scale(5), backgroundColor: database.getCategoryColor(userId!, category.name), marginTop: scale(-10)}}></View>
-                <Text style={{fontFamily: 'Poppins_Regular', fontSize: scale(15), opacity: 0.6, marginTop: scale(-8)}}>{displayPercentage(category.cost)}%</Text>
+              <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: verticalScale(1)}}>
+                <View style={{height: verticalScale(10), width: scale((displayPercentage(category.cost) / displayPercentage(categoryData[0].cost) * 230) <= 10 ? 10 : displayPercentage(category.cost) / displayPercentage(categoryData[0].cost) * 230), borderRadius: verticalScale(5), backgroundColor: database.getCategoryColor(userId!, category.name), marginTop: verticalScale(-10)}}></View>
+                <Text style={{fontFamily: 'Poppins_Regular', fontSize: verticalScale(15), opacity: 0.6, marginTop: verticalScale(-7.5)}}>{displayPercentage(category.cost)}%</Text>
               </View>
             </View>
           )
