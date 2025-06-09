@@ -32,7 +32,7 @@ export default function Layout() {
     }
     // console.log('device ID :', deviceId) // Mine: 6d40f748dd1d8bbe   Caro: 12138508123cda2f
     // console.log('moment:', moment('2024-12-01-23:58:12', 'YYYY-MM-DD-HH:mm:ss').format('YYYY-'))
-    UserSession().setUserId(deviceId)
+    UserSession().setUserId('6d40f748dd1d8bbe')
 
     await Font.loadAsync({
       Poppins_Light: require('../assets/fonts/Poppins-Light.ttf'),
