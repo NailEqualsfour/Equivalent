@@ -94,7 +94,7 @@ export default function Spending() {
         
         <View>
           <Modal visible={dropdownVisible} transparent={true} statusBarTranslucent>
-            <TouchableOpacity onPress={toggleVisibility} activeOpacity={1} style={{flex: 1, opacity: 0.6, backgroundColor: 'black', alignItems: 'center', justifyContent: 'center'}}></TouchableOpacity>
+            <TouchableOpacity onPress={toggleVisibility} activeOpacity={1} style={{flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.6)', alignItems: 'center', justifyContent: 'center'}}></TouchableOpacity>
             <View style={{position: 'absolute', alignSelf: 'center', justifyContent: 'center', marginTop: verticalScale(255), height: scale(25), width: scale(100), borderRadius: scale(8), backgroundColor: 'white', zIndex: 1}}>
               <Text style={{textAlign: 'center', marginRight: scale(17), fontFamily: 'Poppins_Light', fontSize: scale(12)}}>{activePeriod}</Text>
               <Image source={require('../assets/images/arrow_down.png')} style={{position: 'absolute', right: scale(5), height: scale(13), width: scale(17), resizeMode: 'stretch'}}></Image>
