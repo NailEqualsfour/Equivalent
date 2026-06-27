@@ -15,12 +15,14 @@ import Index from "./index";
 import Spending from "./spending";
 import History from "./history";
 import Setup from "./setup";
+import SupabaseService from "./SupabaseService";
 
 SplashScreen.preventAutoHideAsync()
 
 export default function Layout() {
 
   var [appIsReady, setAppStatus] = useState(false)
+  var database = SupabaseService()
   var deviceId: any = ''
 
   async function load() {
@@ -32,7 +34,8 @@ export default function Layout() {
     }
     // console.log('device ID :', deviceId) // Mine: 6d40f748dd1d8bbe   Caro: 12138508123cda2f
     // console.log('moment:', moment('2024-12-01-23:58:12', 'YYYY-MM-DD-HH:mm:ss').format('YYYY-'))
-    UserSession().setUserId(deviceId)
+    UserSession().setUserId((await database.getUserBySerial('12138508123cda2f')).id) 
+
 
     await Font.loadAsync({
       Poppins_Light: require('../assets/fonts/Poppins-Light.ttf'),
@@ -82,16 +85,16 @@ export default function Layout() {
           onIndexChanged={(index) => screenChange(index)}
           onScroll={(e) => fading(scale(e.nativeEvent.contentOffset.x))}>
           <View style={{flex: 1}}>
-            <Index/>
+            <Index isFocused={page === 0}/>
           </View>
           <View style={{flex: 1}}>
-            <Spending/>
+            <Spending isFocused={page === 1}/>
           </View>
           <View style={{flex: 1}}>
-            <History/>
+            <History isFocused={page === 2}/>
           </View>
           <View style={{flex: 1}}>
-            <Setup/>
+            <Setup isFocused={page === 3}/>
           </View>
         </Swiper> 
 
