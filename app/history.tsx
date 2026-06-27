@@ -1,20 +1,49 @@
 import { StatusBar, Text, StyleSheet, Image, Platform, ImageBackground, View, SafeAreaView, ScrollView, Modal, TouchableOpacity, FlatList, Animated, TextInput } from 'react-native';
 import { scale, verticalScale } from 'react-native-size-matters';
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import UserSession from "./UserSession";
-import DatabaseService from './DatabaseService'
+import SupabaseService from './SupabaseService'
 import moment from 'moment';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-export default function History() {
+export default function History({ isFocused }: { isFocused: boolean }) {
   var userId = UserSession().getUserId()
-  var database = DatabaseService()
+  var database = SupabaseService()
 
-  var [historyData, setHistoryData] = useState(database.getTransactionByUserId(userId!))
-  function refreshData() {
+  var [historyData, setHistoryData] = useState<any[]>([])
+  async function refreshData() {
     console.log('Data refreshed??')
-    setHistoryData(database.getTransactionByUserId(userId!))
+    setHistoryData(await database.getTransactionByUserId(userId!))
   }
+
+  var [categoryList, setCategoryList] = useState<{ id: string, name: string, color: string }[]>([])
+  async function loadCategoryList() {
+    setCategoryList(await database.getUserCategories(userId!))
+  }
+
+  var [categoryMap, setCategoryMap] = useState<Record<string, { name: string, color: string }>>({})
+  async function loadCategoryMap() {
+    var categories = await database.getUserCategories(userId!)
+    var map: Record<string, { name: string, color: string }> = {}
+    for (var category of categories) {
+      map[category.id] = { name: category.name, color: category.color }
+    }
+    setCategoryMap(map)
+  }
+  function getCategoryName(categoryId: string) {
+    return categoryMap[categoryId]?.name || ''
+  }
+  function getCategoryColor(categoryId: string) {
+    return categoryMap[categoryId]?.color || 'black'
+  }
+
+  useEffect(() => {
+    if (isFocused) {
+      refreshData()
+      loadCategoryList()
+      loadCategoryMap()
+    }
+  }, [isFocused])
 
   function displayCost(value: number) {
     return '-S$' + value.toFixed(2).toLocaleString()
@@ -23,26 +52,28 @@ export default function History() {
     return moment(time, 'YYYY-MM-DD-HH:mm:ss').format('D MMMM YYYY')
   }
 
+  var [selectedId, setSelectedId] = useState('')
   var [selectedIndex, setSelectedIndex] = useState(-1)
   var [selectedName, setSelectedName] = useState('')
   var [selectedExpense, setSelectedExpense] = useState('')
-  var [selectedCategory, setSelectedCategory] = useState('')
+  var [selectedCategoryId, setSelectedCategoryId] = useState('')
   var [selectedDate, setSelectedDate] = useState('')
-  function setSelectedValue(index: number, name: string, expense: number, category: string, date: string) {
+  function setSelectedValue(id: string, index: number, name: string, expense: number, categoryId: string, date: string) {
+    setSelectedId(id)
     setSelectedIndex(index)
-    setSelectedName(name)
+    setSelectedName(name ?? '')
     setSelectedExpense(expense.toString())
-    setSelectedCategory(category)
+    setSelectedCategoryId(categoryId)
     setSelectedDate(date)
   }
-  function select(index: number, name: string, expense: number, category: string, date: string){
+  function select(id:string, index: number, name: string, expense: number, category: string, date: string){
     if (index == selectedIndex) {
       setSelectedIndex(-1)
       slideHide(index)
     }
     else {
       if (selectedIndex != -1) {slideHide(selectedIndex)}
-      setSelectedValue(index, name, expense, category, date)
+      setSelectedValue(id, index, name, expense, category, date)
       slideShow(index)
     }
   }
@@ -122,7 +153,7 @@ export default function History() {
       }
     }
   }
-  var categoryList = database.getUserCategories(userId!)
+
   var [categoryDropdownVisibility, setCategoryDropdownVisibility] = useState(false)
   var [datePickerVisibility, setDatePickerVisibility] = useState(false)
   function pickDate(date: Date) {
@@ -132,34 +163,34 @@ export default function History() {
 
   var renderItem = ({item, index} : {item: any, index: number}) => {
     if (historyData[index + 1] != undefined) {
-      if (item.time.substr(0, 7) != historyData[index + 1].time.substr(0, 7)) {
+      if (item.timeCreated.substr(0, 7) != historyData[index + 1].timeCreated.substr(0, 7)) {
         return (
           <>
           <View style={{justifyContent: 'center'}}>
-            <TouchableOpacity onPress={() => select(index, item.name, item.cost, item.category, item.time)} key={index} activeOpacity={1} style={{flexDirection: 'row', marginLeft: scale(25), marginRight: scale(32), marginVertical: verticalScale(8)}}>
-              <Image source={require('../assets/images/dot.png')} style={{tintColor: database.getCategoryColor(userId!, item.category), height: scale(17), width: scale(17), alignSelf: 'center', marginRight: scale(13), marginBottom: verticalScale(5)}}></Image>
+            <TouchableOpacity onPress={() => select(item.id, index, item.name, item.cost, item.categoryId, item.timeCreated)} key={index} activeOpacity={1} style={{flexDirection: 'row', marginLeft: scale(25), marginRight: scale(32), marginVertical: verticalScale(8)}}>
+              <Image source={require('../assets/images/dot.png')} style={{tintColor: getCategoryColor(item.categoryId), height: scale(17), width: scale(17), alignSelf: 'center', marginRight: scale(13), marginBottom: verticalScale(5)}}></Image>
               <View style={{flexDirection: 'column', flex: 1}}>
                 <View style={{flexDirection: 'row', justifyContent: 'space-between', height: verticalScale(25)}}>
                   <Text numberOfLines={1} ellipsizeMode={'tail'} style={{fontFamily: 'Nunito_Regular', color: 'black', opacity: item.name == '' ? 0.35 : 1, fontSize: scale(17), width: scale(160)}}>{item.name == '' ? '???' : item.name}</Text>
                   <Text style={{fontFamily: 'Poppins_Regular', color: 'black', fontSize: scale(17)}}>{displayCost(item.cost)}</Text>
                 </View>
                 <View style={{flexDirection: 'row', justifyContent: 'space-between', opacity: 0.6}}>
-                  <Text numberOfLines={1} ellipsizeMode={'tail'} style={{fontFamily: 'Poppins_Light', color: 'black', fontSize: scale(17), width: scale(130)}}>{item.category}</Text>
-                  <Text style={{fontFamily: 'Poppins_Light', color: 'black', fontSize: scale(13.5), marginTop: verticalScale(3)}}>{displayDate(item.time)}</Text>
+                  <Text numberOfLines={1} ellipsizeMode={'tail'} style={{fontFamily: 'Poppins_Light', color: 'black', fontSize: scale(17), width: scale(130)}}>{getCategoryName(item.categoryId)}</Text>
+                  <Text style={{fontFamily: 'Poppins_Light', color: 'black', fontSize: scale(13.5), marginTop: verticalScale(3)}}>{displayDate(item.timeCreated)}</Text>
                 </View>
               </View>
             </TouchableOpacity>
             <Animated.View style={{flexDirection: 'row', position: 'absolute', height: verticalScale(45), width: scale(150), borderTopLeftRadius: scale(50), borderBottomLeftRadius: scale(50), backgroundColor: 'white', justifyContent: 'center', alignItems: 'center', right: slideAnimation[index]}}>
-              <TouchableOpacity onPress={() => {setSelectedValue(index, item.name, item.cost, item.category, item.time); toggleEditPopUpVisibility();}} style={{borderColor: database.getCategoryColor(userId!, item.category), height: verticalScale(30), width: verticalScale(30), borderWidth: scale(2), borderRadius: scale(15), alignItems: 'center', justifyContent: 'center', margin: scale(7)}}>
-                <Image source={require('../assets/images/edit.png')} style={{tintColor: database.getCategoryColor(userId!, item.category), height: verticalScale(20), width: verticalScale(20)}}></Image>
+              <TouchableOpacity onPress={() => {setSelectedValue(item.id, index, item.name, item.cost, item.categoryId, item.timeCreated); toggleEditPopUpVisibility();}} style={{borderColor: getCategoryColor(item.categoryId), height: verticalScale(30), width: verticalScale(30), borderWidth: scale(2), borderRadius: scale(15), alignItems: 'center', justifyContent: 'center', margin: scale(7)}}>
+                <Image source={require('../assets/images/edit.png')} style={{tintColor: getCategoryColor(item.categoryId), height: verticalScale(20), width: verticalScale(20)}}></Image>
               </TouchableOpacity>
-              <TouchableOpacity onPress={() => {setSelectedValue(index, item.name, item.cost, item.category, item.time); toggleDeletePopUpVisibility();}} style={{borderColor: database.getCategoryColor(userId!, item.category), height: verticalScale(30), width: verticalScale(30), borderWidth: scale(2), borderRadius: scale(15), alignItems: 'center', justifyContent: 'center', marginRight: scale(50)}}>
-                <Image source={require('../assets/images/delete.png')} style={{tintColor: database.getCategoryColor(userId!, item.category), height: verticalScale(20), width: verticalScale(20)}}></Image>
+              <TouchableOpacity onPress={() => {setSelectedValue(item.id, index, item.name, item.cost, item.categoryId, item.timeCreated); toggleDeletePopUpVisibility();}} style={{borderColor: getCategoryColor(item.categoryId), height: verticalScale(30), width: verticalScale(30), borderWidth: scale(2), borderRadius: scale(15), alignItems: 'center', justifyContent: 'center', marginRight: scale(50)}}>
+                <Image source={require('../assets/images/delete.png')} style={{tintColor: getCategoryColor(item.categoryId), height: verticalScale(20), width: verticalScale(20)}}></Image>
               </TouchableOpacity>
             </Animated.View>
           </View>
           <View style={{flexDirection: 'row', alignSelf: 'center', justifyContent: 'space-between', width: scale(275), marginTop: verticalScale(20)}}>
-            <Text style={{fontFamily: 'Poppins_Light', color: 'black', opacity: 0.6, fontSize: scale(20)}}>{moment(historyData[index + 1].time, 'YYYY-MM-DD-HH:mm:ss').format('MMMM YYYY')}</Text>
+            <Text style={{fontFamily: 'Poppins_Light', color: 'black', opacity: 0.6, fontSize: scale(20)}}>{moment(historyData[index + 1].timeCreated, 'YYYY-MM-DD-HH:mm:ss').format('MMMM YYYY')}</Text>
             <View style={{height: scale(1), flex: 1, marginLeft: scale(15), borderRadius: scale(0.5), backgroundColor: 'black', opacity: 0.2, alignSelf:'center', marginBottom: scale(6)}}></View>
           </View>
         </>
@@ -169,34 +200,60 @@ export default function History() {
     
     return (
       <View style={{justifyContent: 'center'}}>
-        <TouchableOpacity onPress={() => select(index, item.name, item.cost, item.category, item.time)} key={index} activeOpacity={1} style={{flexDirection: 'row', marginLeft: scale(25), marginRight: scale(32), marginVertical: verticalScale(8)}}>
-          <Image source={require('../assets/images/dot.png')} style={{tintColor: database.getCategoryColor(userId!, item.category), height: scale(17), width: scale(17), alignSelf: 'center', marginRight: scale(13), marginBottom: verticalScale(5)}}></Image>
+        <TouchableOpacity onPress={() => select(item.id, index, item.name, item.cost, item.categoryId, item.timeCreated)} key={index} activeOpacity={1} style={{flexDirection: 'row', marginLeft: scale(25), marginRight: scale(32), marginVertical: verticalScale(8)}}>
+          <Image source={require('../assets/images/dot.png')} style={{tintColor: getCategoryColor(item.categoryId), height: scale(17), width: scale(17), alignSelf: 'center', marginRight: scale(13), marginBottom: verticalScale(5)}}></Image>
           <View style={{flexDirection: 'column', flex: 1}}>
             <View style={{flexDirection: 'row', justifyContent: 'space-between', height: verticalScale(25)}}>
               <Text numberOfLines={1} ellipsizeMode={'tail'} style={{fontFamily: 'Nunito_Regular', color: 'black', opacity: item.name == '' ? 0.35 : 1, fontSize: scale(17), width: scale(160)}}>{item.name == '' ? '???' : item.name}</Text>
               <Text style={{fontFamily: 'Poppins_Regular', color: 'black', fontSize: scale(17)}}>{displayCost(item.cost)}</Text>
             </View>
             <View style={{flexDirection: 'row', justifyContent: 'space-between', opacity: 0.6}}>
-              <Text numberOfLines={1} ellipsizeMode={'tail'} style={{fontFamily: 'Poppins_Light', color: 'black', fontSize: scale(17), width: scale(130)}}>{item.category}</Text>
-              <Text style={{fontFamily: 'Poppins_Light', color: 'black', fontSize: scale(13.5), marginTop: verticalScale(3)}}>{displayDate(item.time)}</Text>
+              <Text numberOfLines={1} ellipsizeMode={'tail'} style={{fontFamily: 'Poppins_Light', color: 'black', fontSize: scale(17), width: scale(130)}}>{getCategoryName(item.categoryId)}</Text>
+              <Text style={{fontFamily: 'Poppins_Light', color: 'black', fontSize: scale(13.5), marginTop: verticalScale(3)}}>{displayDate(item.timeCreated)}</Text>
             </View>
           </View>
         </TouchableOpacity>
         <Animated.View style={{flexDirection: 'row', position: 'absolute', height: verticalScale(45), width: scale(150), borderTopLeftRadius: scale(50), borderBottomLeftRadius: scale(50), backgroundColor: 'white', justifyContent: 'center', alignItems: 'center', right: slideAnimation[index]}}>
-          <TouchableOpacity onPress={() => {setSelectedValue(index, item.name, item.cost, item.category, item.time); toggleEditPopUpVisibility();}} style={{borderColor: database.getCategoryColor(userId!, item.category), height: verticalScale(30), width: verticalScale(30), borderWidth: scale(2), borderRadius: scale(15), alignItems: 'center', justifyContent: 'center', margin: scale(7)}}>
-            <Image source={require('../assets/images/edit.png')} style={{tintColor: database.getCategoryColor(userId!, item.category), height: verticalScale(20), width: verticalScale(20)}}></Image>
+          <TouchableOpacity onPress={() => {setSelectedValue(item.id, index, item.name, item.cost, item.categoryId, item.timeCreated); toggleEditPopUpVisibility();}} style={{borderColor: getCategoryColor(item.categoryId), height: verticalScale(30), width: verticalScale(30), borderWidth: scale(2), borderRadius: scale(15), alignItems: 'center', justifyContent: 'center', margin: scale(7)}}>
+            <Image source={require('../assets/images/edit.png')} style={{tintColor: getCategoryColor(item.categoryId), height: verticalScale(20), width: verticalScale(20)}}></Image>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => {setSelectedValue(index, item.name, item.cost, item.category, item.time); toggleDeletePopUpVisibility();}} style={{borderColor: database.getCategoryColor(userId!, item.category), height: verticalScale(30), width: verticalScale(30), borderWidth: scale(2), borderRadius: scale(15), alignItems: 'center', justifyContent: 'center', marginRight: scale(50)}}>
-            <Image source={require('../assets/images/delete.png')} style={{tintColor: database.getCategoryColor(userId!, item.category), height: verticalScale(20), width: verticalScale(20)}}></Image>
+          <TouchableOpacity onPress={() => {setSelectedValue(item.id, index, item.name, item.cost, item.categoryId, item.timeCreated); toggleDeletePopUpVisibility();}} style={{borderColor: getCategoryColor(item.categoryId), height: verticalScale(30), width: verticalScale(30), borderWidth: scale(2), borderRadius: scale(15), alignItems: 'center', justifyContent: 'center', marginRight: scale(50)}}>
+            <Image source={require('../assets/images/delete.png')} style={{tintColor: getCategoryColor(item.categoryId), height: verticalScale(20), width: verticalScale(20)}}></Image>
           </TouchableOpacity>
         </Animated.View>
       </View>
     )
   }
 
-  var [activePeriod, setPeriod] = useState(moment(historyData[0].time, 'YYYY-MM-DD-HH:mm:ss').format('MMMM YYYY'))
+  var [activePeriod, setPeriod] = useState('')
+  useEffect(() => {
+    if (historyData.length > 0) {
+      setPeriod(moment(historyData[0].timeCreated, 'YYYY-MM-DD-HH:mm:ss').format('MMMM YYYY'))
+    }
+  }, [historyData])
   function changePeriod(period: string) {
     setPeriod(moment(period, 'YYYY-MM-DD-HH:mm:ss').format('MMMM YYYY'))
+  }
+
+  async function updateTransaction() {
+    await database.updateTransaction(selectedId, {
+      name: selectedName, 
+      cost: Number(selectedExpense), 
+      categoryId: selectedCategoryId, 
+      timeCreated: selectedDate, 
+      timeEdited: moment().format('YYYY-MM-DD-HH:mm:ss')})
+    await refreshData()
+    slideAnimation.forEach((animatedValue) => animatedValue.setValue(-scale(150)))
+    setEditPopUpVisibility(false)
+    setSelectedIndex(-1)
+  }
+
+  async function deleteTransaction() {
+    await database.deleteTransaction(selectedId) 
+    await refreshData()
+    slideAnimation.forEach((animatedValue) => animatedValue.setValue(-scale(150)))
+    setDeletePopUpVisibility(false)
+    setSelectedIndex(-1)
   }
 
   return (
@@ -215,7 +272,7 @@ export default function History() {
 
         <FlatList fadingEdgeLength={verticalScale(40)} style={{marginBottom: verticalScale(40)}} 
           data={historyData}
-          onViewableItemsChanged={(e) => (changePeriod(e.viewableItems[0].item.time))}
+          onViewableItemsChanged={(e) => (changePeriod(e.viewableItems[0].item.timeCreated))}
           renderItem={renderItem}/>
       </View>
 
@@ -227,14 +284,14 @@ export default function History() {
               <Text style={{fontFamily: 'Poppins_Regular', color: 'black', fontSize: verticalScale(18), textAlign: 'center'}}>Are you sure you want{'\n'}to delete this transaction?</Text>
 
               <View style={{flexDirection: 'row', marginLeft: scale(8), marginRight: scale(16), marginVertical: verticalScale(15)}}>
-                <Image source={require('../assets/images/dot.png')} style={{tintColor: database.getCategoryColor(userId!, selectedCategory), height: scale(17), width: scale(17), alignSelf: 'center', marginRight: scale(13), marginBottom: verticalScale(5)}}></Image>
+                <Image source={require('../assets/images/dot.png')} style={{tintColor: getCategoryColor(selectedCategoryId), height: scale(17), width: scale(17), alignSelf: 'center', marginRight: scale(13), marginBottom: verticalScale(5)}}></Image>
                 <View style={{flexDirection: 'column', flex: 1}}>
                   <View style={{flexDirection: 'row', justifyContent: 'space-between', height: verticalScale(25)}}>
                     <Text numberOfLines={1} ellipsizeMode={'tail'} style={{fontFamily: 'Nunito_Regular', color: 'black', opacity: selectedName == '' ? 0.35 : 1, fontSize: scale(17), width: scale(160)}}>{selectedName == '' ? '???' : selectedName}</Text>
                     <Text style={{fontFamily: 'Poppins_Regular', color: 'black', fontSize: scale(17)}}>{displayCost(Number(selectedExpense))}</Text>
                   </View>
                   <View style={{flexDirection: 'row', justifyContent: 'space-between', opacity: 0.6}}>
-                    <Text numberOfLines={1} ellipsizeMode={'tail'} style={{fontFamily: 'Poppins_Light', color: 'black', fontSize: scale(17), width: scale(130)}}>{selectedCategory}</Text>
+                    <Text numberOfLines={1} ellipsizeMode={'tail'} style={{fontFamily: 'Poppins_Light', color: 'black', fontSize: scale(17), width: scale(130)}}>{getCategoryName(selectedCategoryId)}</Text>
                     <Text style={{fontFamily: 'Poppins_Light', color: 'black', fontSize: scale(13.5), marginTop: verticalScale(3)}}>{displayDate(selectedDate)}</Text>
                   </View>
                 </View>
@@ -250,7 +307,7 @@ export default function History() {
              </View>
              <View>
               <View style={{backgroundColor: '#681E1E', height: verticalScale(40), width: scale(105), borderRadius: scale(10), position: 'absolute', bottom: verticalScale(2.5)}}></View>
-              <TouchableOpacity style={{backgroundColor: '#C53C3C', height: verticalScale(40), width: scale(105), justifyContent: 'center', borderRadius: scale(10), left: scale(2.5)}}>
+              <TouchableOpacity onPress={deleteTransaction} style={{backgroundColor: '#C53C3C', height: verticalScale(40), width: scale(105), justifyContent: 'center', borderRadius: scale(10), left: scale(2.5)}}>
                 <Text style={{fontFamily: 'Poppins_Regular', color: '#E4E4E4', fontSize: verticalScale(18), textAlign: 'center'}}>Delete</Text>
               </TouchableOpacity>
              </View>
@@ -266,14 +323,14 @@ export default function History() {
             <View style={{backgroundColor: '#E4E4E4', height: verticalScale(345), marginHorizontal: scale(17), paddingTop: verticalScale(20), marginTop: -verticalScale(23), borderRadius: scale(25), alignSelf: 'stretch'}}>
 
               <View style={{flexDirection: 'row', marginLeft: scale(8), marginRight: scale(16)}}>
-                <Image source={require('../assets/images/dot.png')} style={{tintColor: database.getCategoryColor(userId!, selectedCategory), height: scale(17), width: scale(17), alignSelf: 'center', marginRight: scale(13), marginBottom: verticalScale(5)}}></Image>
+                <Image source={require('../assets/images/dot.png')} style={{tintColor: getCategoryColor(selectedCategoryId), height: scale(17), width: scale(17), alignSelf: 'center', marginRight: scale(13), marginBottom: verticalScale(5)}}></Image>
                 <View style={{flexDirection: 'column', flex: 1}}>
                   <View style={{flexDirection: 'row', justifyContent: 'space-between', height: verticalScale(25)}}>
                     <Text numberOfLines={1} ellipsizeMode={'tail'} style={{fontFamily: 'Nunito_Regular', color: 'black', opacity: selectedName == '' ? 0.35 : 1, fontSize: scale(17), width: scale(160)}}>{selectedName == '' ? '???' : selectedName}</Text>
                     <Text style={{fontFamily: 'Poppins_Regular', color: 'black', fontSize: scale(17)}}>{displayCost(Number(selectedExpense))}</Text>
                   </View>
                   <View style={{flexDirection: 'row', justifyContent: 'space-between', opacity: 0.6}}>
-                    <Text numberOfLines={1} ellipsizeMode={'tail'} style={{fontFamily: 'Poppins_Light', color: 'black', fontSize: scale(17), width: scale(130)}}>{selectedCategory}</Text>
+                    <Text numberOfLines={1} ellipsizeMode={'tail'} style={{fontFamily: 'Poppins_Light', color: 'black', fontSize: scale(17), width: scale(130)}}>{getCategoryName(selectedCategoryId)}</Text>
                     <Text style={{fontFamily: 'Poppins_Light', color: 'black', fontSize: scale(13.5), marginTop: verticalScale(3)}}>{displayDate(selectedDate)}</Text>
                   </View>
                 </View>
@@ -295,24 +352,24 @@ export default function History() {
                 <Text style={{fontFamily: 'Poppins_Regular', color: 'black', fontSize: verticalScale(15), marginLeft: scale(28), marginBottom: -verticalScale(3)}}>Category</Text>
                 {!categoryDropdownVisibility ? 
                 <TouchableOpacity onPress={() => setCategoryDropdownVisibility(true)} style={{backgroundColor: '#EEEEEE', height: verticalScale(34), marginHorizontal: scale(25), borderRadius: verticalScale(10), borderWidth: scale(1), alignItems: 'center', justifyContent: 'center'}}>
-                  <Image source={require('../assets/images/dot.png')} style={{tintColor: database.getCategoryColor(userId!, selectedCategory), height: scale(17), width: scale(17), position: 'absolute', alignSelf: 'flex-start', marginLeft: scale(9), marginBottom: verticalScale(5)}}></Image>
-                  <Text numberOfLines={1} ellipsizeMode={'tail'} style={{fontFamily: 'Poppins_Regular', color: 'black', fontSize: verticalScale(16), marginBottom: -verticalScale(4)}}>{selectedCategory}</Text>
+                  <Image source={require('../assets/images/dot.png')} style={{tintColor: getCategoryColor(selectedCategoryId), height: scale(17), width: scale(17), position: 'absolute', alignSelf: 'flex-start', marginLeft: scale(9), marginBottom: verticalScale(5)}}></Image>
+                  <Text numberOfLines={1} ellipsizeMode={'tail'} style={{fontFamily: 'Poppins_Regular', color: 'black', fontSize: verticalScale(16), marginBottom: -verticalScale(4)}}>{getCategoryName(selectedCategoryId)}</Text>
                   <Image source={require('../assets/images/arrow_down.png')} style={{height: scale(20), width: scale(20), position: 'absolute', alignSelf: 'flex-end', right: scale(9), marginBottom: verticalScale(5)}}></Image>
                 </TouchableOpacity>
                 :
                 <>
                 <TouchableOpacity onPress={() => setCategoryDropdownVisibility(false)} style={{backgroundColor: '#EEEEEE', height: verticalScale(34), marginHorizontal: scale(25), borderTopLeftRadius: verticalScale(10), borderTopRightRadius: verticalScale(10), borderWidth: scale(1), alignItems: 'center', justifyContent: 'center'}}>
-                  <Image source={require('../assets/images/dot.png')} style={{tintColor: database.getCategoryColor(userId!, selectedCategory), height: scale(17), width: scale(17), position: 'absolute', alignSelf: 'flex-start', marginLeft: scale(9), marginBottom: verticalScale(5)}}></Image>
-                  <Text numberOfLines={1} ellipsizeMode={'tail'} style={{fontFamily: 'Poppins_Regular', color: 'black', fontSize: verticalScale(16), marginBottom: -verticalScale(4)}}>{selectedCategory}</Text>
+                  <Image source={require('../assets/images/dot.png')} style={{tintColor: getCategoryColor(selectedCategoryId), height: scale(17), width: scale(17), position: 'absolute', alignSelf: 'flex-start', marginLeft: scale(9), marginBottom: verticalScale(5)}}></Image>
+                  <Text numberOfLines={1} ellipsizeMode={'tail'} style={{fontFamily: 'Poppins_Regular', color: 'black', fontSize: verticalScale(16), marginBottom: -verticalScale(4)}}>{getCategoryName(selectedCategoryId)}</Text>
                   <Image source={require('../assets/images/arrow_down.png')} style={{height: scale(20), width: scale(20), position: 'absolute', alignSelf: 'flex-end', right: scale(9), marginBottom: verticalScale(5)}}></Image>
                 </TouchableOpacity>
                 <ScrollView style={{backgroundColor: '#EEEEEE', left: scale(25), right: scale(25), zIndex: 1, position: 'absolute', top: verticalScale(56), maxHeight: verticalScale(197), borderBottomLeftRadius: verticalScale(13), borderBottomRightRadius: verticalScale(13)}}>
                   {categoryList.map((category, index) => {
-                    if (category != selectedCategory) {
+                    if (category.id != selectedCategoryId) {
                       return (
-                        <TouchableOpacity key={index} activeOpacity={0.4} onPress={() => {setSelectedCategory(category); setCategoryDropdownVisibility(false);}} style={{backgroundColor: '#EEEEEE', height: verticalScale(34), marginTop: -verticalScale(1), borderWidth: scale(1), alignItems: 'center', justifyContent: 'center'}}>
-                          <Image source={require('../assets/images/dot.png')} style={{tintColor: database.getCategoryColor(userId!, category), height: scale(17), width: scale(17), position: 'absolute', alignSelf: 'flex-start', marginLeft: scale(9), marginBottom: verticalScale(5)}}></Image>
-                          <Text numberOfLines={1} ellipsizeMode={'tail'} style={{fontFamily: 'Poppins_Regular', color: 'black', fontSize: verticalScale(16), marginBottom: -verticalScale(4)}}>{category}</Text>
+                        <TouchableOpacity key={index} activeOpacity={0.4} onPress={() => {setSelectedCategoryId(category.id); setCategoryDropdownVisibility(false);}} style={{backgroundColor: '#EEEEEE', height: verticalScale(34), marginTop: -verticalScale(1), borderWidth: scale(1), alignItems: 'center', justifyContent: 'center'}}>
+                          <Image source={require('../assets/images/dot.png')} style={{tintColor: category.color, height: scale(17), width: scale(17), position: 'absolute', alignSelf: 'flex-start', marginLeft: scale(9), marginBottom: verticalScale(5)}}></Image>
+                          <Text numberOfLines={1} ellipsizeMode={'tail'} style={{fontFamily: 'Poppins_Regular', color: 'black', fontSize: verticalScale(16), marginBottom: -verticalScale(4)}}>{category.name}</Text>
                         </TouchableOpacity>
                       )
                     }  
@@ -341,7 +398,7 @@ export default function History() {
              </View>
              <View>
               <View style={{backgroundColor: '#1E6834', height: verticalScale(40), width: scale(105), borderRadius: scale(10), position: 'absolute', bottom: verticalScale(2.5)}}></View>
-              <TouchableOpacity style={{backgroundColor: '#3CC560', height: verticalScale(40), width: scale(105), justifyContent: 'center', borderRadius: scale(10), left: scale(2.5)}}>
+              <TouchableOpacity onPress={updateTransaction} style={{backgroundColor: '#3CC560', height: verticalScale(40), width: scale(105), justifyContent: 'center', borderRadius: scale(10), left: scale(2.5)}}>
                 <Text style={{fontFamily: 'Poppins_Regular', color: '#E4E4E4', fontSize: verticalScale(18), textAlign: 'center'}}>Edit</Text>
               </TouchableOpacity>
              </View>

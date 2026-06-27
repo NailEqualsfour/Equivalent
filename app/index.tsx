@@ -2,12 +2,63 @@ import { StatusBar, Text, StyleSheet, Image, ImageBackground, View, TouchableOpa
 import { scale, verticalScale } from 'react-native-size-matters';
 import React, { useState, useRef, useEffect } from "react";
 import UserSession from "./UserSession";
+import SupabaseService from './SupabaseService' 
+import moment from 'moment';
 
-export default function Index() {
+export default function Index({ isFocused }: { isFocused: boolean }) {
+  var userId = UserSession().getUserId()
+  var database = SupabaseService()
   
-  var [budget, setBudget] = useState('155.75')
-  function deduct(budget: string, expense: string) {
-    setBudget((Number(budget) - Number(expense)).toFixed(2))
+  var [budget, setBudget] = useState('0')
+  async function refreshData() {
+    console.log('Data refreshed??')
+    setBudget((
+      await database.getBudgetByPeriod(userId!, 'This month') - await database.getTotalTransactionCostByPeriod(userId!, 'This month')).toString()
+    )
+  }
+
+  var [activeCategoryId, setCategory] = useState('')
+  var [categoryList, setCategoryList] = useState<{ id: string, name: string, color: string }[]>([])
+  async function loadCategoryList() {
+    var categories = await database.getUserCategories(userId!)
+    setCategoryList(categories)
+    if (categories.length > 0 && activeCategoryId == '') {
+      setCategory(categories[0].id)
+    }
+  }
+  function getActiveCategoryName() {
+    return categoryList.find((category) => category.id == activeCategoryId)?.name || ''
+  }
+  function selectCategory(categoryId: string) {
+    setCategory(categoryId)
+    toggleVisibility()
+  }
+  function scrollCategory(direction: string) {
+    var currentIndex = categoryList.findIndex((category) => category.id == activeCategoryId)
+    if (direction == 'up') {
+      setCategory(categoryList.at(currentIndex - 1)!.id)
+    }
+    if (direction == 'down') {
+      try {
+        setCategory(categoryList.at(currentIndex + 1)!.id)
+      }
+      catch {
+        setCategory(categoryList[0].id)
+      }
+    }
+  }
+
+  useEffect(() => {
+    if (isFocused) {
+      refreshData()
+      loadCategoryList()
+    }
+  }, [isFocused])
+
+  async function deduct() {
+    if (expenseRef.current == '') return
+    await database.createTransaction({userId: userId!, categoryId: categoryRef.current, cost: Number(expenseRef.current), timeCreated: moment().format('YYYY-MM-DD-HH:mm:ss')})
+    await refreshData()
     setExpense('')
   }
 
@@ -76,25 +127,6 @@ export default function Index() {
   function toggleVisibility() {
     setVisibility(!popUpVisible)
   }
-  var categoryList = ['Shopping', 'Transport', 'Grocery', 'Skincare', 'Meal', 'Entertainment']
-  var [activeCategory, setCategory] = useState('Shopping')
-  function selectCategory(category: string) {
-    setCategory(category)
-    toggleVisibility()
-  }
-  function scrollCategory(direction: string) {
-    if (direction == 'up') {
-      setCategory(categoryList.at(categoryList.indexOf(activeCategory) - 1)!)
-    }
-    if (direction == 'down') {
-      try {
-        setCategory(categoryList.at(categoryList.indexOf(activeCategory) + 1)!.toString())
-      }
-      catch {
-        setCategory(categoryList[0])
-      }
-    }
-  }
 
   var [pulseFade, setPulseFade] = useState(1)
   var pulseList = [0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1, 0]
@@ -129,7 +161,7 @@ export default function Index() {
 
   const budgetRef = useRef(budget);
   const expenseRef = useRef(expense);
-  const categoryRef = useRef(activeCategory)
+  const categoryRef = useRef(activeCategoryId)
 
   useEffect(() => {
     budgetRef.current = budget;
@@ -140,8 +172,8 @@ export default function Index() {
   }, [expense]);
 
   useEffect(() => {
-    categoryRef.current = activeCategory;
-  }, [activeCategory]);
+    categoryRef.current = activeCategoryId;
+  }, [activeCategoryId]);
 
   const translateY = useRef(new Animated.Value(0)).current;
   const MAX_TRANSLATE_Y = verticalScale(-60);
@@ -176,16 +208,24 @@ export default function Index() {
         // Check if the current value of translateY is at the clamp limit
         translateY.stopAnimation((currentValue) => {
           if (currentValue === MAX_TRANSLATE_Y) {
-            deduct(budgetRef.current, expenseRef.current)
+            setPulseFade(0)
+            deduct().then(() => {
+              Animated.spring(translateY, {
+                toValue: 0,
+                useNativeDriver: true,
+              }).start();
+              setPulseFade(1)
+            })
           }
-          setPulseFade(1)
+          else {
+            setPulseFade(1)
+            // Animate back to the original position
+            Animated.spring(translateY, {
+              toValue: 0,
+              useNativeDriver: true,
+            }).start();
+          }
         });
-
-        // Animate back to the original position
-        Animated.spring(translateY, {
-          toValue: 0,
-          useNativeDriver: true,
-        }).start();
       },
     })
   ).current;
@@ -267,7 +307,7 @@ export default function Index() {
             <TouchableOpacity onPress={() => scrollCategory('down')}>
               <Image source={require('../assets/images/arrow_left.png')} style={{height: verticalScale(20), width: verticalScale(20), tintColor: 'white', marginLeft: scale(5), marginRight: scale(5)}}></Image>
             </TouchableOpacity>
-            <Text style={{fontFamily: 'Poppins_Light', color: 'white', fontSize: scale(20), includeFontPadding: false}}>{activeCategory}</Text>
+            <Text style={{fontFamily: 'Poppins_Light', color: 'white', fontSize: scale(20), includeFontPadding: false}}>{getActiveCategoryName()}</Text>
             <TouchableOpacity onPress={() => scrollCategory('up')}>
               <Image source={require('../assets/images/arrow_right.png')} style={{height: verticalScale(20), width: verticalScale(20), tintColor: 'white', marginLeft: scale(5), marginRight: scale(5)}}></Image>
             </TouchableOpacity>
@@ -281,9 +321,9 @@ export default function Index() {
             
             {categoryList.map((category, index) => {
               return (
-                <View key={index} style={{alignItems: 'center', justifyContent: 'center'}}>
-                  <TouchableOpacity onPress={() => selectCategory(category)} style={{width: scale(200)}}>
-                    <Text style={{fontFamily: 'Poppins_Light', color: 'white', fontSize: scale(activeCategory == category ? 18 : 23), padding: scale(4), textAlign: 'center'}}>{activeCategory == category ? '~~ ' : ''}{category}{activeCategory == category ? ' ~~' : ''}</Text>
+                <View key={category.id} style={{alignItems: 'center', justifyContent: 'center'}}>
+                  <TouchableOpacity onPress={() => selectCategory(category.id)} style={{width: scale(200)}}>
+                    <Text style={{fontFamily: 'Poppins_Light', color: 'white', fontSize: scale(activeCategoryId == category.id ? 18 : 23), padding: scale(4), textAlign: 'center'}}>{activeCategoryId == category.id ? '~~ ' : ''}{category.name}{activeCategoryId == category.id ? ' ~~' : ''}</Text>
                   </TouchableOpacity>
                   {index == categoryList.length - 1 ? <View></View> : <View style={{height: scale(2), width: scale(130), backgroundColor: 'white', borderRadius: scale(3)}}></View>}
                 </View>
