@@ -8,25 +8,49 @@ export default function Setup({ isFocused }: { isFocused: boolean }) {
   var userId = UserSession().getUserId()
   var database = SupabaseService()
 
-  var [categoryData, setCategoryData] = useState<any[]>([])
-  async function refreshData() {
-    console.log('Data refreshed??')
-    var categories = await database.getUserCategories(userId!)
-    setCategoryData(categories ?? [])
-  }
   useEffect(() => {
     if (isFocused) {
-      refreshData()
+      loadBudget()
+      loadCategoryData()
     }
   }, [isFocused])
-  
-  var [budget, setBudget] = useState('300.00')
+
+  var [budget, setBudget] = useState('')
+  async function loadBudget() {
+    setBudget((await database.getBudgetByPeriod(userId!, 'This month')).toFixed(2))
+  }
+  async function updateBudget() {
+    await database.updateBudget(userId!, Number(budget))
+  }
+  useEffect(() => {
+    if (budget != '') {
+      updateBudget()
+    }
+  }, [budget])
+
+  var [categoryData, setCategoryData] = useState<any[]>([])
+  async function loadCategoryData() {
+    setCategoryData(await database.getCategoriesByUserId(userId!) ?? [])
+  }
+
+  async function createCategory() {
+    await database.createCategory({userId: userId!, name: 'New Category', color: '#ACACAC'})
+    loadCategoryData()
+  }
+  async function updateCategory(categoryId: string, item: { name?: string, color?: string, position?: number }) {
+    await database.updateCategory(categoryId, item)
+    loadCategoryData()
+  }
+  async function deleteCategory(categoryId: string) {
+    await database.deleteCategory(categoryId)
+    loadCategoryData()
+  }
 
   var hiddenBudgetInput = useRef<TextInput>(null);
   function toggleKeyboard() {
     hiddenBudgetInput.current?.focus()
   }
-  function typed(key: any, text: string, setFunction?: any) {
+  async function typed(key: any, text: string, setFunction?: any) {
     key = key.nativeEvent.key
     console.log(key)
     if (text != 'budget') {
@@ -60,7 +84,6 @@ export default function Setup({ isFocused }: { isFocused: boolean }) {
         setBudget(budget + key)
       }
     }
-    
   }
 
   return (
@@ -78,13 +101,13 @@ export default function Setup({ isFocused }: { isFocused: boolean }) {
 
       <View style={{marginTop: verticalScale(55), flexDirection: 'row', alignSelf: 'center', justifyContent: 'space-between', width: scale(285)}}>
         <Text style={{fontFamily: 'Poppins_Light', color: 'black', fontSize: scale(20), verticalAlign: 'middle'}}>Expense Categories</Text>
-        <TouchableOpacity style={{justifyContent: 'center'}}>
+        <TouchableOpacity onPress={createCategory} style={{justifyContent: 'center'}}>
           <Image source={require('../assets/images/add.png')} style={{height: scale(15), width: scale(15)}}></Image>
         </TouchableOpacity>
       </View>
 
       {categoryData?.map((category, index) => (
-        <CategoryRow key={index} category={category} categoryData={categoryData} />
+        <CategoryRow key={index} category={category} categoryData={categoryData} updateFunction={updateCategory} deleteFunction={deleteCategory}/>
       ))}
 
       <View style={{marginTop: verticalScale(55), flexDirection: 'row', alignSelf: 'center', justifyContent: 'space-between', width: scale(285)}}>
@@ -106,17 +129,9 @@ export default function Setup({ isFocused }: { isFocused: boolean }) {
 }
 
 // Category Row Component
-function CategoryRow({ category, categoryData }: { category: any, categoryData: any[] }) {
+function CategoryRow({ category, categoryData, updateFunction, deleteFunction }: { category: any, categoryData: any[], updateFunction: any, deleteFunction: any}) {
   var [categoryName, setCategoryName] = useState(category.name)
   var hiddenCategoryInput = useRef<TextInput>(null);
-  var categoryNameRef = category.name
-  function duplicateNameCheck() {
-    // function don't really work now, it just allows any name-editing for now. It will work after connecting to Supabase
-    if (categoryData?.filter(category => category.name === categoryName).length! > 1) {
-      ToastAndroid.show('A category with similar name already exist', ToastAndroid.SHORT)
-      setCategoryName(categoryNameRef)
-    }
-  }
 
   var [selectColorPopUpVisibility, setSelectColorPopUpVisibility] = useState(false)
   function toggleSelectColorPopUpVisibility() {
@@ -136,6 +151,11 @@ function CategoryRow({ category, categoryData }: { category: any, categoryData: 
       setFunction(text + key)
     }
   }
+  useEffect(() => {
+    if (categoryName != '' && categoryName != category.name) {
+      updateFunction(category.id, {name: categoryName})
+    }
+  }, [categoryName])
 
   return (
     <View>
@@ -143,7 +163,7 @@ function CategoryRow({ category, categoryData }: { category: any, categoryData: 
         <TouchableOpacity onPress={toggleSelectColorPopUpVisibility} style={{height: scale(30), width: scale(30), backgroundColor: category.color, borderRadius: scale(8), alignSelf: 'center'}}></TouchableOpacity>
         <TouchableOpacity onPress={() => hiddenCategoryInput.current?.focus()} style={{backgroundColor: '#EEEEEE', height: verticalScale(30), width: scale(220), borderRadius: verticalScale(10), borderWidth: scale(1), borderColor: 'rgba(0, 0, 0, 0.3)', alignItems: 'center', justifyContent: 'center'}}>
           <Text numberOfLines={1} ellipsizeMode={'tail'} style={{fontFamily: 'Poppins_Light', color: 'black', fontSize: verticalScale(16), marginBottom: -verticalScale(4)}}>{categoryName}</Text>
-          <TextInput ref={hiddenCategoryInput} onBlur={() => duplicateNameCheck()} onKeyPress={(key) => typed(key, categoryName, setCategoryName)} style={{position: 'absolute', opacity: 0}} value={categoryName}></TextInput>
+          <TextInput ref={hiddenCategoryInput} onKeyPress={(key) => typed(key, categoryName, setCategoryName)} style={{position: 'absolute', opacity: 0}} value={categoryName}></TextInput>
         </TouchableOpacity>
         <TouchableOpacity onPress={toggleDeletePopUpVisibility} style={{justifyContent: 'center'}}>
           <Image source={require('../assets/images/cross.png')} style={{height: scale(15), width: scale(15)}}></Image>
@@ -162,19 +182,19 @@ function CategoryRow({ category, categoryData }: { category: any, categoryData: 
               </View>
               <View>
                 <View style={{flexDirection: 'row', justifyContent: 'center', marginTop: scale(15)}}>
-                  <TouchableOpacity style={{height: scale(55), width: scale(55), borderRadius: scale(10), margin: scale(10), backgroundColor: '#97DC1F'}}></TouchableOpacity>
-                  <TouchableOpacity style={{height: scale(55), width: scale(55), borderRadius: scale(10), margin: scale(10), backgroundColor: '#32D5A3'}}></TouchableOpacity>
-                  <TouchableOpacity style={{height: scale(55), width: scale(55), borderRadius: scale(10), margin: scale(10), backgroundColor: '#3CC560'}}></TouchableOpacity>
+                  <TouchableOpacity onPress={() => {updateFunction(category.id, {color: '#97DC1F'}); toggleSelectColorPopUpVisibility();}} style={{height: scale(55), width: scale(55), borderRadius: scale(10), margin: scale(10), backgroundColor: '#97DC1F'}}></TouchableOpacity>
+                  <TouchableOpacity onPress={() => {updateFunction(category.id, {color: '#32D5A3'}); toggleSelectColorPopUpVisibility();}} style={{height: scale(55), width: scale(55), borderRadius: scale(10), margin: scale(10), backgroundColor: '#32D5A3'}}></TouchableOpacity>
+                  <TouchableOpacity onPress={() => {updateFunction(category.id, {color: '#3CC560'}); toggleSelectColorPopUpVisibility();}} style={{height: scale(55), width: scale(55), borderRadius: scale(10), margin: scale(10), backgroundColor: '#3CC560'}}></TouchableOpacity>
                 </View>
                 <View style={{flexDirection: 'row', justifyContent: 'center'}}>
-                  <TouchableOpacity style={{height: scale(55), width: scale(55), borderRadius: scale(10), margin: scale(10), backgroundColor: '#F97A42'}}></TouchableOpacity>
-                  <TouchableOpacity style={{height: scale(55), width: scale(55), borderRadius: scale(10), margin: scale(10), backgroundColor: '#06D3E2'}}></TouchableOpacity>
-                  <TouchableOpacity style={{height: scale(55), width: scale(55), borderRadius: scale(10), margin: scale(10), backgroundColor: '#6061D6'}}></TouchableOpacity>
+                  <TouchableOpacity onPress={() => {updateFunction(category.id, {color: '#F97A42'}); toggleSelectColorPopUpVisibility();}} style={{height: scale(55), width: scale(55), borderRadius: scale(10), margin: scale(10), backgroundColor: '#F97A42'}}></TouchableOpacity>
+                  <TouchableOpacity onPress={() => {updateFunction(category.id, {color: '#06D3E2'}); toggleSelectColorPopUpVisibility();}} style={{height: scale(55), width: scale(55), borderRadius: scale(10), margin: scale(10), backgroundColor: '#06D3E2'}}></TouchableOpacity>
+                  <TouchableOpacity onPress={() => {updateFunction(category.id, {color: '#6061D6'}); toggleSelectColorPopUpVisibility();}} style={{height: scale(55), width: scale(55), borderRadius: scale(10), margin: scale(10), backgroundColor: '#6061D6'}}></TouchableOpacity>
                 </View>
                 <View style={{flexDirection: 'row', justifyContent: 'center'}}>
-                  <TouchableOpacity style={{height: scale(55), width: scale(55), borderRadius: scale(10), margin: scale(10), backgroundColor: '#EC3EF9'}}></TouchableOpacity>
-                  <TouchableOpacity style={{height: scale(55), width: scale(55), borderRadius: scale(10), margin: scale(10), backgroundColor: '#EC4EA4'}}></TouchableOpacity>
-                  <TouchableOpacity style={{height: scale(55), width: scale(55), borderRadius: scale(10), margin: scale(10), backgroundColor: '#E3346E'}}></TouchableOpacity>
+                  <TouchableOpacity onPress={() => {updateFunction(category.id, {color: '#EC3EF9'}); toggleSelectColorPopUpVisibility();}} style={{height: scale(55), width: scale(55), borderRadius: scale(10), margin: scale(10), backgroundColor: '#EC3EF9'}}></TouchableOpacity>
+                  <TouchableOpacity onPress={() => {updateFunction(category.id, {color: '#EC4EA4'}); toggleSelectColorPopUpVisibility();}} style={{height: scale(55), width: scale(55), borderRadius: scale(10), margin: scale(10), backgroundColor: '#EC4EA4'}}></TouchableOpacity>
+                  <TouchableOpacity onPress={() => {updateFunction(category.id, {color: '#E3346E'}); toggleSelectColorPopUpVisibility();}} style={{height: scale(55), width: scale(55), borderRadius: scale(10), margin: scale(10), backgroundColor: '#E3346E'}}></TouchableOpacity>
                 </View>
               </View>
             </View>
@@ -203,7 +223,7 @@ function CategoryRow({ category, categoryData }: { category: any, categoryData: 
               </View>
               <View>
                 <View style={{backgroundColor: '#681E1E', height: verticalScale(40), width: scale(105), borderRadius: scale(10), position: 'absolute', bottom: verticalScale(2.5)}}></View>
-                <TouchableOpacity style={{backgroundColor: '#C53C3C', height: verticalScale(40), width: scale(105), justifyContent: 'center', borderRadius: scale(10), left: scale(2.5)}}>
+                <TouchableOpacity onPress={() => deleteFunction(category.id)} style={{backgroundColor: '#C53C3C', height: verticalScale(40), width: scale(105), justifyContent: 'center', borderRadius: scale(10), left: scale(2.5)}}>
                   <Text style={{fontFamily: 'Poppins_Regular', color: '#E4E4E4', fontSize: verticalScale(18), textAlign: 'center'}}>Delete</Text>
                 </TouchableOpacity>
               </View>
