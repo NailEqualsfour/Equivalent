@@ -1,6 +1,4 @@
-import { Stack } from "expo-router";
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import * as SplashScreen from 'expo-splash-screen';
 import * as Application from 'expo-application';
 import * as Font from 'expo-font';
@@ -25,6 +23,10 @@ export default function Layout() {
   var database = SupabaseService()
   var deviceId: any = ''
 
+  useEffect(() => {
+    load()
+  }, [])
+  
   async function load() {
     if (Platform.OS === 'ios') {
       deviceId = await Application.getIosIdForVendorAsync();
@@ -33,9 +35,7 @@ export default function Layout() {
       deviceId = await Application.getAndroidId();
     }
     // console.log('device ID :', deviceId) // Mine: 6d40f748dd1d8bbe   Caro: 12138508123cda2f
-    // console.log('moment:', moment('2024-12-01-23:58:12', 'YYYY-MM-DD-HH:mm:ss').format('YYYY-'))
     UserSession().setUserId((await database.getUserBySerial('12138508123cda2f')).id) 
-
 
     await Font.loadAsync({
       Poppins_Light: require('../assets/fonts/Poppins-Light.ttf'),
@@ -45,11 +45,10 @@ export default function Layout() {
       Nunito_Regular: require('../assets/fonts/Nunito-Regular.ttf'),
       Fira_Code_Regular: require('../assets/fonts/FiraCode-Regular.ttf'),
     });
-    console.log('App is ready~')
+    console.log('App Status: Ready')
     setAppStatus(true)
     SplashScreen.hideAsync()
   }
-  load()
 
   var [page, setPage] = useState(0)
   function screenChange(index: number){
@@ -70,8 +69,6 @@ export default function Layout() {
   function getFadeValue() {
     return Number(fadeTint.substr(4, 3))
   }
-
-
 
   if (appIsReady) {
     return (

@@ -8,26 +8,27 @@ import moment from 'moment';
 export default function Index({ isFocused }: { isFocused: boolean }) {
   var userId = UserSession().getUserId()
   var database = SupabaseService()
+
+  useEffect(() => {
+    if (isFocused) {
+      updateBudget()
+      loadCategoryList()
+    }
+  }, [isFocused])
   
   var [budget, setBudget] = useState('0')
-  async function refreshData() {
-    console.log('Data refreshed??')
-    setBudget((
-      await database.getBudgetByPeriod(userId!, 'This month') - await database.getTotalTransactionCostByPeriod(userId!, 'This month')).toString()
-    )
+  async function updateBudget() {
+    setBudget((await database.getBudgetByPeriod(userId!, 'This month') - await database.getTotalTransactionCostByPeriod(userId!, 'This month')).toString())
   }
 
   var [activeCategoryId, setCategory] = useState('')
   var [categoryList, setCategoryList] = useState<{ id: string, name: string, color: string }[]>([])
   async function loadCategoryList() {
-    var categories = await database.getUserCategories(userId!)
+    var categories = await database.getCategoriesByUserId(userId!)
     setCategoryList(categories)
     if (categories.length > 0 && activeCategoryId == '') {
       setCategory(categories[0].id)
     }
-  }
-  function getActiveCategoryName() {
-    return categoryList.find((category) => category.id == activeCategoryId)?.name || ''
   }
   function selectCategory(categoryId: string) {
     setCategory(categoryId)
@@ -47,19 +48,8 @@ export default function Index({ isFocused }: { isFocused: boolean }) {
       }
     }
   }
-
-  useEffect(() => {
-    if (isFocused) {
-      refreshData()
-      loadCategoryList()
-    }
-  }, [isFocused])
-
-  async function deduct() {
-    if (expenseRef.current == '') return
-    await database.createTransaction({userId: userId!, categoryId: categoryRef.current, cost: Number(expenseRef.current), timeCreated: moment().format('YYYY-MM-DD-HH:mm:ss')})
-    await refreshData()
-    setExpense('')
+  function getActiveCategoryName() {
+    return categoryList.find((category) => category.id == activeCategoryId)?.name || ''
   }
 
   var [expense, setExpense] = useState('')
@@ -134,7 +124,7 @@ export default function Index({ isFocused }: { isFocused: boolean }) {
   var [secondPulse, setSecondPulse] = useState(pulseList[7])
   var [thirdPulse, setThirdPulse] = useState(pulseList[0])
   function pulse() {
-    if (expense != ''){
+    if (expense != '' && isFocused){
       setTimeout(() => {
         try {
           setFirstPulse(Number(pulseList.at(pulseList.indexOf(firstPulse) + 1)!.toString()))
@@ -159,25 +149,27 @@ export default function Index({ isFocused }: { isFocused: boolean }) {
   }
   pulse()
 
-  const budgetRef = useRef(budget);
-  const expenseRef = useRef(expense);
+  async function deduct() {
+    if (expenseRef.current == '') return 
+    await database.createTransaction({userId: userId!, categoryId: categoryRef.current, cost: Number(expenseRef.current), timeCreated: moment().format('YYYY-MM-DD-HH:mm:ss')})
+    updateBudget()
+    setExpense('')
+  }
+  const budgetRef = useRef(budget)
+  const expenseRef = useRef(expense)
   const categoryRef = useRef(activeCategoryId)
-
   useEffect(() => {
-    budgetRef.current = budget;
-  }, [budget]);
-
+    budgetRef.current = budget
+  }, [budget])
   useEffect(() => {
-    expenseRef.current = expense;
-  }, [expense]);
-
+    expenseRef.current = expense
+  }, [expense])
   useEffect(() => {
-    categoryRef.current = activeCategoryId;
-  }, [activeCategoryId]);
+    categoryRef.current = activeCategoryId
+  }, [activeCategoryId])
 
   const translateY = useRef(new Animated.Value(0)).current;
   const MAX_TRANSLATE_Y = verticalScale(-60);
-
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: (_, gestureState) => {
@@ -197,7 +189,6 @@ export default function Index({ isFocused }: { isFocused: boolean }) {
         }
       },
       onPanResponderTerminate: () => {
-        console.log('fucked')
         // If gesture is interrupted, ensure spring back
         Animated.spring(translateY, {
           toValue: 0,

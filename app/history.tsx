@@ -10,20 +10,27 @@ export default function History({ isFocused }: { isFocused: boolean }) {
   var userId = UserSession().getUserId()
   var database = SupabaseService()
 
+  useEffect(() => {
+    if (isFocused) {
+      updateHistoryData()
+      loadCategoryList()
+      loadCategoryMap()
+    }
+  }, [isFocused])
+
   var [historyData, setHistoryData] = useState<any[]>([])
-  async function refreshData() {
-    console.log('Data refreshed??')
+  async function updateHistoryData() {
     setHistoryData(await database.getTransactionByUserId(userId!))
   }
 
   var [categoryList, setCategoryList] = useState<{ id: string, name: string, color: string }[]>([])
   async function loadCategoryList() {
-    setCategoryList(await database.getUserCategories(userId!))
+    setCategoryList(await database.getCategoriesByUserId(userId!))
   }
 
   var [categoryMap, setCategoryMap] = useState<Record<string, { name: string, color: string }>>({})
   async function loadCategoryMap() {
-    var categories = await database.getUserCategories(userId!)
+    var categories = await database.getCategoriesByUserId(userId!)
     var map: Record<string, { name: string, color: string }> = {}
     for (var category of categories) {
       map[category.id] = { name: category.name, color: category.color }
@@ -36,14 +43,6 @@ export default function History({ isFocused }: { isFocused: boolean }) {
   function getCategoryColor(categoryId: string) {
     return categoryMap[categoryId]?.color || 'black'
   }
-
-  useEffect(() => {
-    if (isFocused) {
-      refreshData()
-      loadCategoryList()
-      loadCategoryMap()
-    }
-  }, [isFocused])
 
   function displayCost(value: number) {
     return '-S$' + value.toFixed(2).toLocaleString()
@@ -242,7 +241,7 @@ export default function History({ isFocused }: { isFocused: boolean }) {
       categoryId: selectedCategoryId, 
       timeCreated: selectedDate, 
       timeEdited: moment().format('YYYY-MM-DD-HH:mm:ss')})
-    await refreshData()
+    await updateHistoryData()
     slideAnimation.forEach((animatedValue) => animatedValue.setValue(-scale(150)))
     setEditPopUpVisibility(false)
     setSelectedIndex(-1)
@@ -250,7 +249,7 @@ export default function History({ isFocused }: { isFocused: boolean }) {
 
   async function deleteTransaction() {
     await database.deleteTransaction(selectedId) 
-    await refreshData()
+    await updateHistoryData()
     slideAnimation.forEach((animatedValue) => animatedValue.setValue(-scale(150)))
     setDeletePopUpVisibility(false)
     setSelectedIndex(-1)

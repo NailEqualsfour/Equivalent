@@ -9,6 +9,13 @@ export default function Spending({ isFocused }: { isFocused: boolean }) {
   var userId = UserSession().getUserId()
   var database = SupabaseService()
 
+  useEffect(() => {
+    if (isFocused) {
+      updateBudget(activePeriod)
+      updateCategoryData(activePeriod)
+    }
+  }, [isFocused])
+
   var [budget, setBudget] = useState(0)
   async function updateBudget(period: string) {
     setBudget(await database.getBudgetByPeriod(userId!, period))
@@ -18,13 +25,6 @@ export default function Spending({ isFocused }: { isFocused: boolean }) {
   async function updateCategoryData(period: string) {
     setCategoryData(await database.getTransactionGroupbyCategoryByPeriod(userId!, period))
   }
-
-  useEffect(() => {
-    if (isFocused) {
-      updateBudget(activePeriod)
-      updateCategoryData(activePeriod)
-    }
-  }, [isFocused])
 
   var [spent, setSpent] = useState(0)
   function displayPercentage(value: number) {

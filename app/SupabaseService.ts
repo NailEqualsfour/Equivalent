@@ -14,7 +14,10 @@ function SupabaseService() {
         return data
     }
 
-    async function getUserCategories(userId: string) {
+
+
+    // Category Functions
+    async function getCategoriesByUserId(userId: string) {
         const { data, error } = await supabase 
             .from('categories')
             .select('*')
@@ -24,17 +27,36 @@ function SupabaseService() {
         return data
     } 
 
-    async function getCategoryColor(userId: string, category: string) {
-        const { data, error } = await supabase 
+    async function createCategory(item: { userId: string, name: string, color: string, position?: number }) {
+        const { error } = await supabase
             .from('categories')
-            .select('color')
-            .eq('userId', userId)
-            .eq('name', category) 
-            .maybeSingle()
+            .insert({
+                ...item
+            })
         if (error) throw error
-        return data ? data.color : 'black'
     }
 
+    async function updateCategory(categoryId: string, item: { name?: string, color?: string, position?: number }) {
+        const { error } = await supabase 
+            .from('categories') 
+            .update({
+                ...item
+            })
+            .eq('id', categoryId)
+        if (error) throw error
+    }
+
+    async function deleteCategory(categoryId: string) {
+        const { error } = await supabase 
+            .from('categories') 
+            .delete() 
+            .eq('id', categoryId)
+        if (error) throw error
+    }
+
+
+
+    // Budget Functions
     async function getBudgetByPeriod(userId: string, period: string) {
         var start = null
         var end = null
@@ -61,6 +83,17 @@ function SupabaseService() {
         })
         if (error) throw error
         return data
+    }
+
+    async function updateBudget(userId: string, budget: number) {
+        const { error } = await supabase
+            .from('budgets') 
+            .update({ 
+                budget: budget
+            })
+            .eq('userId', userId)
+            .eq('time', moment().format('YYYY-MM'))
+        if (error) throw error
     }
 
 
@@ -122,7 +155,7 @@ function SupabaseService() {
         const returnList: { userId: string; name: string; cost: number }[] = [];
         const categoryMap: Record<string, { userId: string; name: string; color: string; cost: number }> = {};
         const [categories, periodTransactions] = await Promise.all([
-        getUserCategories(userId),
+        getCategoriesByUserId(userId),
         getTransactionByPeriod(userId, period)
         ])
         for (var category of categories) {
@@ -199,9 +232,12 @@ function SupabaseService() {
 
     return {
         getUserBySerial,
-        getUserCategories,
-        getCategoryColor,
+        getCategoriesByUserId,
+        createCategory,
+        updateCategory,
+        deleteCategory,
         getBudgetByPeriod,
+        updateBudget,
         getTransactionByUserId,
         getTransactionByCategoryId,
         getTransactionGroupbyCategoryByPeriod, 
