@@ -26,7 +26,7 @@ export default function Layout() {
   useEffect(() => {
     load()
   }, [])
-  
+
   async function load() {
     if (Platform.OS === 'ios') {
       deviceId = await Application.getIosIdForVendorAsync();
@@ -34,8 +34,20 @@ export default function Layout() {
     if (Platform.OS === 'android') {
       deviceId = await Application.getAndroidId();
     }
+
     // console.log('device ID :', deviceId) // Mine: 6d40f748dd1d8bbe   Caro: 12138508123cda2f
-    UserSession().setUserId((await database.getUserBySerial('12138508123cda2f')).id) 
+    console.log(deviceId)
+    var user = await database.getUserBySerial('12138508123cda2f')
+    if (!user) {
+      await database.createUser(deviceId) 
+      user = await database.getUserBySerial(deviceId)
+      await database.createSettings(user.id) 
+      await database.createBudget({userId: user.id, budget: 100, time: moment().format('YYYY-MM')})
+      await database.createCategory({userId: user.id, name: 'Food', color: '#3CC560'})
+      await database.createCategory({userId: user.id, name: 'Transport', color: '#06D3E2'})
+      await database.createCategory({userId: user.id, name: 'Miscellaneous', color: '#EC4EA4'})
+    }
+    UserSession().setUserId(user.id) 
 
     await Font.loadAsync({
       Poppins_Light: require('../assets/fonts/Poppins-Light.ttf'),

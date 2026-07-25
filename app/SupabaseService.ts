@@ -9,9 +9,33 @@ function SupabaseService() {
             .from('users')
             .select('*')
             .eq('serial', serial)
-            .single()
+            .maybeSingle()
         if (error) throw error
         return data
+    }
+
+    async function createUser(serial: string) {
+        const { error } = await supabase 
+            .from('users')
+            .insert({
+                serial: serial
+            })
+        if (error) throw error
+    }
+
+
+
+    // Settings Functions
+    async function createSettings(userId: string) {
+        const { error } = await supabase 
+            .from('settings')
+            .insert({ 
+                userId: userId, 
+                navigation: 'swipe', 
+                tutorialToggle: true, 
+                hideIndexNumPadToggle: false
+            })
+        if (error) throw error
     }
 
 
@@ -85,14 +109,26 @@ function SupabaseService() {
         return data
     }
 
+    async function createBudget(item: { userId: string, budget: number, time: string }) {
+        const { error } = await supabase 
+            .from('budgets') 
+            .insert({ 
+                ...item
+            })
+        if (error) throw error
+    }
+
     async function updateBudget(userId: string, budget: number) {
+        var currentMonth = moment().format('YYYY-MM')
+        var nextMonth = moment().add(1, 'months').format('YYYY-MM')
+
         const { error } = await supabase
             .from('budgets') 
             .update({ 
                 budget: budget
             })
             .eq('userId', userId)
-            .eq('time', moment().format('YYYY-MM'))
+            .in('time', [currentMonth, nextMonth])
         if (error) throw error
     }
 
@@ -231,12 +267,15 @@ function SupabaseService() {
 
 
     return {
-        getUserBySerial,
+        getUserBySerial, 
+        createUser,
+        createSettings, 
         getCategoriesByUserId,
         createCategory,
         updateCategory,
         deleteCategory,
         getBudgetByPeriod,
+        createBudget, 
         updateBudget,
         getTransactionByUserId,
         getTransactionByCategoryId,
