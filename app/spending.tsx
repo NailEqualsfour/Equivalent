@@ -127,7 +127,7 @@ export default function Spending({ isFocused }: { isFocused: boolean }) {
         
 
 				<View style={{position: 'absolute', alignSelf: 'center', marginTop: verticalScale(125.5), height: verticalScale(207.5), width: verticalScale(207.5), transform: [{rotate: '90deg'}, {scaleX: -1}]}}>
-					<AnimatedCircularProgress size={verticalScale(207.5)} width={verticalScale(15.5)} fill={budget === 0 ? 0 : (1 - spent / budget) * 100} tintColor="#3D5875" backgroundColor="#E4E4E4" />
+					<AnimatedCircularProgress size={verticalScale(207.5)} width={verticalScale(15.5)} fill={spent === 0 ? 100 : budget === 0 ? 0 : (1 - spent / budget) * 100} tintColor="#3D5875" backgroundColor="#E4E4E4" />
 				</View>
 				<View style={{position: 'absolute', alignSelf: 'center', marginTop: verticalScale(125.5), height: verticalScale(207.5), width: verticalScale(207.5), borderRadius: verticalScale(105), borderColor: '#3D5875', borderWidth: verticalScale(3)}}></View>
 
@@ -158,7 +158,7 @@ export default function Spending({ isFocused }: { isFocused: boolean }) {
                 <Text style={{fontFamily: 'Poppins_Regular', fontSize: verticalScale(16)}}>{category.cost == 0 ? '- ' : '-S$'+displayDollar(category.cost)+displayCent(category.cost)}</Text>
               </View>
               <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: verticalScale(1)}}>
-                <View style={{height: verticalScale(10), width: scale((displayPercentage(category.cost) / displayPercentage(categoryData[0].cost) * 230) <= 10 ? 10 : displayPercentage(category.cost) / displayPercentage(categoryData[0].cost) * 230), borderRadius: verticalScale(5), backgroundColor: category.color, marginTop: verticalScale(-10)}}></View>
+                <View style={{height: verticalScale(10), width: category.cost == 0 ? 10 : scale((displayPercentage(category.cost) / displayPercentage(categoryData[0].cost) * 230) <= 10 ? 10 : displayPercentage(category.cost) / displayPercentage(categoryData[0].cost) * 230), borderRadius: verticalScale(5), backgroundColor: category.color, marginTop: verticalScale(-10)}}></View>
                 <Text style={{fontFamily: 'Poppins_Regular', fontSize: verticalScale(15), opacity: 0.6, marginTop: verticalScale(-7.5)}}>{displayPercentage(category.cost)}%</Text>
               </View>
             </View>
