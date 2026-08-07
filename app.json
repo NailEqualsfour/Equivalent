@@ -8,7 +8,7 @@
     "splash": {
       "image": "./assets/images/Splashy.jpg",
       "resizeMode": "cover",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#2C2C2A"
     },
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
